@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>405</width>
+    <height>284</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="2">
+     <widget class="QLineEdit" name="passwordLineEdit">
+      <property name="text">
+       <string>Black7Hole$5</string>
+      </property>
+      <property name="echoMode">
+       <enum>QLineEdit::Password</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="2">
+     <widget class="QLineEdit" name="md5HashLineEdit">
+      <property name="text">
+       <string>vhbxzj947yisfbl</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="0" colspan="3">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="okPushButton">
+        <property name="text">
+         <string>OK</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="cancelPushButton">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="9" column="0" colspan="3">
+     <widget class="QLabel" name="label_8">
+      <property name="font">
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>New settings will be applied after restarting application</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="0" colspan="3">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="4" column="2">
+     <widget class="QLineEdit" name="eventUrlLineEdit">
+      <property name="text">
+       <string>http://kz527.onnet.su:5555</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QLineEdit" name="authUrlLineEdit">
+      <property name="text">
+       <string>https://kz527.onnet.su:8443/v1/user_auth</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QLineEdit" name="realmLineEdit">
+      <property name="text">
+       <string>blackhole.sip3.onnet.su</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Auth url</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Login</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Realm</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Event url</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Info url</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="2">
+     <widget class="QLineEdit" name="infoUrlLineEdit">
+      <property name="text">
+       <string>https://onnet.su:8443/api/zonnet/cidinfo</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Password</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLineEdit" name="loginLineEdit">
+      <property name="text">
+       <string>admin</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Md5 secret</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="0" colspan="3">
+     <widget class="QCheckBox" name="closeWindowCheckBox">
+      <property name="text">
+       <string>Close window after call hung up</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
