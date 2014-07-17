@@ -18,7 +18,7 @@ This application:
  - Pop's Up window with provided info.
 
 It is:
- - written in Qt which promises to be crossplatform application (hopefully);
+ - written in Qt which promises to be crossplatform application (tested on Linux and Windows);
  - is NOT production ready, but intended to be a simple example of using blachole whapp
    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632).
 
