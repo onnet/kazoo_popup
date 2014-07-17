@@ -1,7 +1,7 @@
 kazoo_popup
 ===========
 
-Ordered by Kirill Sysoev (kirill.sysoev@gmail.com)
+Ordered by Kirill Sysoev kirill.sysoev@gmail.com
 (OnNet communications Inc. http://onnet.su)
 
 Developed by Alexey Lysenko (lysenkoalexmail@gmail.com)
