@@ -23,3 +23,6 @@ It is:
    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632).
 
 Good luck!
+
+
+![Alt text](/kazoo_popup.png "Screenshot")
