@@ -12,14 +12,14 @@ If you would like to order additional development, contact Alexey Lysenko over e
 
 
 This application:
- - connects Kazoo whapp blackhole;
- - listens for incoming calls
- - queries third party server whether it knows anything about caller's number
- - Pop's Up window with provided info
+ - connects to Kazoo whapp blackhole;
+ - listens for incoming calls;
+ - queries third party server whether it knows anything about caller's number;
+ - Pop's Up window with provided info.
 
 It is:
- - written in Qt which promises to be crossplatform application (hopefully)
- - is NOT production ready but intended to be a simple example of using blachole whapp
+ - written in Qt which promises to be crossplatform application (hopefully);
+ - is NOT production ready but intended to be a simple example of using blachole whapp.
    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632)
 
 Good luck!
