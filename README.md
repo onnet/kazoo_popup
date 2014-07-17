@@ -4,7 +4,7 @@ kazoo_popup
 Ordered by Kirill Sysoev kirill.sysoev@gmail.com
 (OnNet communications Inc. http://onnet.su)
 
-Developed by Alexey Lysenko (lysenkoalexmail@gmail.com)
+Developed by Alexey Lysenko lysenkoalexmail@gmail.com
 
 Please report bugs and provide any possible patches directly to this repository.
 
