@@ -19,7 +19,7 @@ This application:
 
 It is:
  - written in Qt which promises to be crossplatform application (hopefully);
- - is NOT production ready but intended to be a simple example of using blachole whapp.
+ - is NOT production ready, but intended to be a simple example of using blachole whapp.
    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632)
 
 Good luck!
