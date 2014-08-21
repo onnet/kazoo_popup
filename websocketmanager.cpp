@@ -163,7 +163,8 @@ void WebSocketManager::webSocketDisconnected()
 
 void WebSocketManager::webSocketTextMessageReceived(const QString &message)
 {
-    if (!message.startsWith("5")) return;
+    if (!message.startsWith("5"))
+        return;
 
     QString data = message.mid(4);
 
@@ -184,7 +185,8 @@ void WebSocketManager::processWsData(const QString &data)
         QJsonObject args = jsonDocument.object().value("args").toObject();
         QString callDirection = args.value("Call-Direction").toString();
 
-        if (callDirection != "inbound") return; 
+        if (callDirection != "inbound")
+            return;
 
         QString callerNumber = args.value("Caller-ID-Number").toString();
         QString callId = args.value("Call-ID").toString();
@@ -225,7 +227,8 @@ void WebSocketManager::processWsData(const QString &data)
         QJsonObject args = jsonDocument.object().value("args").toObject();
         QString callDirection = args.value("Call-Direction").toString();
 
-        if (callDirection != "inbound") return;
+        if (callDirection != "inbound")
+            return;
 
         QString callId = args.value("Call-ID").toString();
         QString calleeNumber = args.value("Callee-ID-Number").toString();

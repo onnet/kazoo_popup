@@ -42,6 +42,8 @@ InformerDialog::InformerDialog(QWidget *parent) :
 
     connect(ui->closeToolButton, &QToolButton::clicked,
             this, &InformerDialog::hide);
+    connect(ui->attachToolButton, &QToolButton::clicked,
+            this, &InformerDialog::processAttach);
 }
 
 InformerDialog::~InformerDialog()
@@ -51,7 +53,13 @@ InformerDialog::~InformerDialog()
 
 void InformerDialog::setContactInfo(ContactInfo *contactInfo)
 {
+    m_contactInfo = contactInfo;
     ui->informationLabel->setText(contactInfo->toHtml());
+}
+
+ContactInfo *InformerDialog::contactInfo() const
+{
+    return m_contactInfo;
 }
 
 void InformerDialog::setAnswered(bool answered)
@@ -94,4 +102,16 @@ void InformerDialog::mouseMoveEvent(QMouseEvent *event)
             event->accept();
         }
     }
+}
+
+bool InformerDialog::isAttached() const
+{
+    return ui->attachToolButton->isChecked();
+}
+
+void InformerDialog::processAttach(bool checked)
+{
+    emit dialogAttached(checked);
+    if (checked)
+        setStyleSheet("QDialog {\nbackground-color: #BFDFFF;\n}");
 }

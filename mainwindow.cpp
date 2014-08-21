@@ -96,9 +96,17 @@ void MainWindow::onChannelCreated(ContactInfo *contactInfo)
         informerDialog->setAnswered(false);
         informerDialog->show();
     }
+    else if (m_attachedDialogsHash.contains(contactInfo))
+    {
+        return;
+    }
     else
     {
         InformerDialog *informerDialog = new InformerDialog();
+        connect(informerDialog, &InformerDialog::finished,
+                this, &MainWindow::processDialogFinished);
+        connect(informerDialog, &InformerDialog::dialogAttached,
+                this, &MainWindow::processDialogAttached);
         informerDialog->setContactInfo(contactInfo);
         m_informerDialogsHash.insert(contactInfo, informerDialog);
         informerDialog->adjustSize();
@@ -113,30 +121,42 @@ void MainWindow::onChannelCreated(ContactInfo *contactInfo)
 
 void MainWindow::onChannelAnswered(ContactInfo *contactInfo)
 {
-    m_contactInfoForTimer = contactInfo;
+    if (!m_informerDialogsHash.contains(contactInfo))
+        return;
+
     InformerDialog *informerDialog = m_informerDialogsHash.value(contactInfo);
     if (informerDialog->isVisible())
         informerDialog->setAnswered(true);
 
-    QTimer::singleShot(15000, this, SLOT(timeout()));
+    QTimer *timer = new QTimer();
+    connect(timer, &QTimer::timeout,
+            this, &MainWindow::timeout);
+    timer->setSingleShot(true);
+    m_timersHash.insert(contactInfo, timer);
+    timer->start(15000);
 }
 
 void MainWindow::timeout()
 {
-    if (m_contactInfoForTimer == nullptr)
+    QTimer *timer = qobject_cast<QTimer*>(sender());
+
+    if (timer == nullptr)
         return;
 
-    if (!m_informerDialogsHash.contains(m_contactInfoForTimer))
+    ContactInfo *contactInfo = m_timersHash.key(timer);
+
+    if (!m_informerDialogsHash.contains(contactInfo))
         return;
 
-    InformerDialog *informerDialog = m_informerDialogsHash.value(m_contactInfoForTimer);
+    InformerDialog *informerDialog = m_informerDialogsHash.value(contactInfo);
     if (informerDialog->isVisible())
         informerDialog->close();
 
-    m_informerDialogsHash.remove(m_contactInfoForTimer);
+    m_informerDialogsHash.remove(contactInfo);
     informerDialog->deleteLater();
-    delete m_contactInfoForTimer;
-    m_contactInfoForTimer = nullptr;
+
+    delete contactInfo;
+    contactInfo = nullptr;
 }
 
 void MainWindow::onChannelDestroyed(ContactInfo *contactInfo)
@@ -144,15 +164,20 @@ void MainWindow::onChannelDestroyed(ContactInfo *contactInfo)
     if (!m_informerDialogsHash.contains(contactInfo))
         return;
 
-    QSettings settings(qApp->applicationDirPath() + "/settings.ini", QSettings::IniFormat);
-    bool close = settings.value("close_hung_up", true).toBool();
-
     InformerDialog *informerDialog = m_informerDialogsHash.value(contactInfo);
-    if (informerDialog->isVisible() && close)
+    if (informerDialog->isVisible() && !informerDialog->isAttached())
         informerDialog->close();
 
     m_informerDialogsHash.remove(contactInfo);
     informerDialog->deleteLater();
+    if (m_timersHash.contains(contactInfo))
+    {
+        QTimer *timer = m_timersHash.value(contactInfo);
+        m_timersHash.remove(contactInfo);
+        timer->stop();
+        timer->deleteLater();
+    }
+
     delete contactInfo;
 }
 
@@ -206,7 +231,6 @@ void MainWindow::saveSettings()
     settings.setValue("event_url", ui->eventUrlLineEdit->text());
     settings.setValue("info_url", ui->infoUrlLineEdit->text());
     settings.setValue("md5_hash", ui->md5HashLineEdit->text());
-    settings.setValue("close_hung_up", ui->closeWindowCheckBox->isChecked());
 
     close();
 }
@@ -221,7 +245,6 @@ void MainWindow::loadSettings()
     ui->eventUrlLineEdit->setText(settings.value("event_url", kEventUrl).toString());
     ui->infoUrlLineEdit->setText(settings.value("info_url", kInfoUrl).toString());
     ui->md5HashLineEdit->setText(settings.value("md5_hash", kMd5Hash).toString());
-    ui->closeWindowCheckBox->setChecked(settings.value("close_hung_up", true).toBool());
 }
 
 void MainWindow::showEvent(QShowEvent *event)
@@ -230,4 +253,36 @@ void MainWindow::showEvent(QShowEvent *event)
         loadSettings();
 
     QMainWindow::showEvent(event);
+}
+
+void MainWindow::processDialogFinished()
+{
+    InformerDialog *informerDialog = qobject_cast<InformerDialog*>(sender());
+    m_attachedDialogsHash.remove(informerDialog->contactInfo());
+    if (!m_informerDialogsHash.values().contains(informerDialog))
+        return;
+
+    ContactInfo *ci = m_informerDialogsHash.key(informerDialog);
+    m_informerDialogsHash.remove(ci);
+}
+
+void MainWindow::processDialogAttached(bool attached)
+{
+    InformerDialog *informerDialog = qobject_cast<InformerDialog*>(sender());
+    if (attached)
+    {
+        m_attachedDialogsHash.insert(informerDialog->contactInfo(), informerDialog);
+        if (!m_informerDialogsHash.values().contains(informerDialog))
+            return;
+
+        m_informerDialogsHash.remove(m_informerDialogsHash.key(informerDialog));
+    }
+    else
+    {
+        m_attachedDialogsHash.remove(informerDialog->contactInfo());
+        if (m_informerDialogsHash.values().contains(informerDialog))
+            return;
+
+        m_informerDialogsHash.insert(informerDialog->contactInfo(), informerDialog);
+    }
 }

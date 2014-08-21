@@ -33,7 +33,7 @@ static const char * const kPassword = "Black7Hole$5";
 static const char * const kRealm = "blackhole.sip3.onnet.su";
 static const char * const kAuthUrl = "https://kz527.onnet.su:8443/v1/user_auth";
 static const char * const kEventUrl = "http://kz527.onnet.su:5555";
-static const char * const kInfoUrl = "https://onnet.su:8443/api/zonnet/cidinfo";
+static const char * const kInfoUrl = "https://onnet.su/api/onnet/cidinfo";
 static const char * const kMd5Hash = "vhbxzj947yisfbl";
 
 #endif // DEFAULTS_H

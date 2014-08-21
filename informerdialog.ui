@@ -72,6 +72,32 @@ background-color: #FFFFBF;
       </spacer>
      </item>
      <item>
+      <widget class="QToolButton" name="attachToolButton">
+       <property name="toolTip">
+        <string>Attach</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="app.qrc">
+         <normaloff>:/res/attach.png</normaloff>:/res/attach.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="closeToolButton">
        <property name="toolTip">
         <string>Close</string>
