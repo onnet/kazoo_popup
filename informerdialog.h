@@ -47,7 +47,12 @@ public:
     ~InformerDialog();
 
     void setContactInfo(ContactInfo *contactInfo);
+    ContactInfo *contactInfo() const;
     void setAnswered(bool answered);
+    bool isAttached() const;
+
+signals:
+    void dialogAttached(bool attached);
 
 protected:
     // for moving frameless window
@@ -57,10 +62,14 @@ protected:
 
 private:
     Ui::InformerDialog *ui;
+    ContactInfo *m_contactInfo = nullptr;
 
     // for moving frameless window
     QPoint m_dragPosition;
     bool m_dragging;
+
+private slots:
+    void processAttach(bool checked);
 };
 
 #endif // INFORMERDIALOG_H

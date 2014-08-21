@@ -59,7 +59,8 @@ private:
     QSystemTrayIcon *m_trayIcon;
 
     QHash<ContactInfo*, InformerDialog*> m_informerDialogsHash;
-    ContactInfo *m_contactInfoForTimer = nullptr;
+    QHash<ContactInfo*, InformerDialog*> m_attachedDialogsHash;
+    QHash<ContactInfo*, QTimer*> m_timersHash;
 
     WebSocketManager *m_wsMan;
 
@@ -72,6 +73,9 @@ private slots:
     void loadSettings();
 
     void timeout();
+
+    void processDialogFinished();
+    void processDialogAttached(bool attached);
 };
 
 #endif // MAINWINDOW_H
