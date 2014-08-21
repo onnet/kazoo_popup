@@ -25,4 +25,11 @@ It is:
 Good luck!
 
 
+Win:
+
 ![Alt text](/kazoo_popup.png "Screenshot")
+
+
+Mac:
+
+![Alt text](/kazoo_popup_mac.png "Screenshot")
