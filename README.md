@@ -27,9 +27,14 @@ Good luck!
 
 Win:
 
-![Alt text](/kazoo_popup.png "Screenshot")
+![Alt text](/kazoo_popup.png "Screenshot Windows")
 
 
 Mac:
 
-![Alt text](/kazoo_popup_mac.png "Screenshot")
+![Alt text](/kazoo_popup_mac.png "Screenshot Mac")
+
+
+Linux:
+
+![Alt text](/kazoo_popup_linux.png "Screenshot Linux")
