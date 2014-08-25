@@ -111,9 +111,3 @@ By clicking on the tray icon, the user should be able to stop the program, acces
 
 
 ## Technical Specification
-
-
-
-## Wishlist
-
-### Extensibility
