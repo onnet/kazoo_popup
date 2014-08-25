@@ -30,6 +30,9 @@ The purpose of this project is to create a native application for the Windows an
 
 ### Scenarios
 
+####Download
+As a user, I would want to be able to download an executable and run it without any configuration.  This should include all presets relating to my current user profile at time of download.
+
 #### Notifications
 As a user who works on my computer all day I would like to have an notice appear on my computer screen when I receive a call with all the details about who is calling. 
 
@@ -47,7 +50,6 @@ When the application receives a notification of an incoming channel involving th
 * The reported caller's name
 * The reported caller's number
 * The number the caller dialed
-* A brief history of the latest calls made to or from the caller
 
 Each screen-pop should be associated with a Call-ID for correlation with subsequent notifications.
 
@@ -58,16 +60,17 @@ In the event that the notification indicates the call was answered, the screen-p
 2. If the answering channel does not belong to the user, the screen-pop should be updated with information regarding which channel answered the call.  This should include:
 * The reported callee number
 * The reported callee name
-* When the notification contains the identification of the corresponding Kazoo user, also include the name of the user user as resolved via the Kazoo API.
 
 #### Destroy Notifications
 If the application receives a notification that a known Call-ID has been destroyed the corresponding screen-pop should be removed.
 
 ### Screen-Pop Actions
-Active screen-pops should allow the user to open a website via the system default browser when the application is configured with a URL template.  The website URL should be dynamically generated based on the configured template and may contain information from the channel create notification (predominately the caller's reported number).
+Active screen-pops should allow the user to open a website via the system default browser when the application is configured with a URL template.  The website URL should be dynamically generated based on the configured template and may contain information from the channel create notification (predominately the caller's reported number).  
+
+This should be an option that can be selected per user to either require manual activation or to always open the associated url for any call answered by the user without requiring action on the screen-pop.
 
 ### Closing Screen-Pops
-A visible screen-pop should automatically remove itself after a short period of time.
+A visible screen-pop should automatically remove itself after a short period of time.  User should be able to configure the timeout settings.
 
 The user should also be able to easily take action to remove the screen-pop.   
 
@@ -79,6 +82,15 @@ It is possible that a user may receive more than one call at a time.  When this 
 ### Installation
 The installation should be as simple as possible, targeted at computer illiterate users.  The minimum number of steps should be involved and ideally no external dependencies.
 
+The installation should have the appropriate information to monitor the calls associated with this user, regardless of the devices being used. 
+
+Installation procedure should force user to accept EULA.
+
+Installation should allow a user to determine if the application will start automatically upon boot.
+
+###Updates
+The user should be informed when an update is available.  This should be a persistent visual reminder in the form of a modification to the standard icon in the system notification area. 
+
 ### Removal
 The user should be able to easily remove the application via the standard means of the operating system.
 
@@ -87,8 +99,14 @@ Once installed the application should start automatically every time the system 
 
 When running a indication should remain resident in the operating system notification area.  When this indication is clicked the user can only stop the application.
 
-### Configuration 
+The user should be able to easily access a debug log.  In the event that the user experiences an issue, the computer illiterate user should be able to easily email this log to a support representative.  This log should at minimum contain 1) attempts to connect to the server 2) any rejection messages 3) configuration at start-up 4) any log lines the program maintainers would need in order to debug an issue.
 
+The system tray icons should change to delineate whether the program is able to make screen-pops appear and offer additional details when not able to function as desired.
+
+Information should be transferred between the application and the backend in a secure manner. 
+
+### Configuration 
+By clicking on the tray icon, the user should be able to stop the program, access settings, get the debug log, and close all active pop-ups. 
 
 
 
