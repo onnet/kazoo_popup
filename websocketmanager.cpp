@@ -1,34 +1,7 @@
-/* --------------------------------------------------------------------------------------------------------------------------
- * ** 
- * ** Ordered by Kirill Sysoev kirill.sysoev@gmail.com
- * ** (OnNet communications Inc. http://onnet.su)
- * ** 
- * ** Developed by Alexey Lysenko lysenkoalexmail@gmail.com
- * ** 
- * ** Please report bugs and provide any possible patches directly to this repository: https://github.com/onnet/kazoo_popup.git
- * ** 
- * ** If you would like to order additional development, contact Alexey Lysenko over email lysenkoalexmail@gmail.com directly.
- * ** 
- * ** 
- * ** This application:
- * **  - connects to Kazoo whapp blackhole;
- * **  - listens for incoming calls;
- * **  - queries third party server whether it knows anything about caller's number;
- * **  - Pop's Up window with provided info.
- * ** 
- * ** It is:
- * **  - written in Qt which promises to be crossplatform application (hopefully);
- * **  - is NOT production ready, but intended to be a simple example of using blachole whapp
- * **    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632).
- * ** 
- * ** Good luck!
- * ** 
- * ** -------------------------------------------------------------------------------------------------------------------------*/
-
 #include "websocketmanager.h"
 
 #include "defaults.h"
-#include "contactinfo.h"
+#include "caller.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -39,32 +12,58 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#include <QApplication>
 #include <QSettings>
 
 static const char * const kRetrieveWsPath = "/socket.io/1/";
 static const char * const kWsPath = "/socket.io/1/websocket/";
-static const char * const kCallerInfoQuery = "?calling_number=%1&md5=%2";
 
 WebSocketManager::WebSocketManager(QObject *parent) :
     QObject(parent)
 {
-    m_nam = new QNetworkAccessManager(this); 
-
-    m_settings = new QSettings(qApp->applicationDirPath() + "/settings.ini",
-                               QSettings::IniFormat,
-                               this);
+    m_nam = new QNetworkAccessManager(this);
 }
 
 WebSocketManager::~WebSocketManager()
 {
     if (m_webSocket)
+    {
+        m_webSocket->close();
         m_webSocket->deleteLater();
+    }
 }
 
 void WebSocketManager::start()
 {
+    m_callersHash.clear();
+
+    if (m_settings)
+        m_settings->deleteLater();
+
+    m_settings = new QSettings(dataDirPath() + "/settings.ini",
+                               QSettings::IniFormat,
+                               this);
+
+    if (m_webSocket)
+    {
+        m_webSocket->close();
+        m_webSocket->deleteLater();
+    }
+
     retrieveAuthToken();
+}
+
+void WebSocketManager::stop()
+{
+    m_callersHash.clear();
+
+    if (m_settings)
+        m_settings->deleteLater();
+
+    if (m_webSocket)
+    {
+        m_webSocket->close();
+        m_webSocket->deleteLater();
+    }
 }
 
 void WebSocketManager::retrieveAuthToken()
@@ -128,9 +127,6 @@ void WebSocketManager::retrieveWsAddressFinished()
     path.append(webSocketPath);
     wsUrl.setPath(path);
 
-    if (m_webSocket)
-        m_webSocket->deleteLater();
-
     m_webSocket = new QWebSocket();
     connect(m_webSocket, &QWebSocket::connected,
             this, &WebSocketManager::webSocketConnected);
@@ -179,127 +175,84 @@ void WebSocketManager::processWsData(const QString &data)
     if (error.error != QJsonParseError::NoError)
         return;
 
+    qDebug() << "\n" << data << "\n";
+
     QString eventName = jsonDocument.object().value("name").toString();
     if (eventName == "CHANNEL_CREATE")
     {
         QJsonObject args = jsonDocument.object().value("args").toObject();
         QString callDirection = args.value("Call-Direction").toString();
 
-        if (callDirection != "inbound")
-            return;
-
-        QString callerNumber = args.value("Caller-ID-Number").toString();
         QString callId = args.value("Call-ID").toString();
-
-        m_contactCallIdHash.insert(callerNumber, callId);
-
-        m_createChannelHash.insert(callId, callerNumber);
-        //QString calleeNumber = args.value("Callee-ID-Number").toString();
-
-        if (m_contactsHash.contains(callerNumber))
+        if (callDirection == "outbound")
         {
-            ContactInfo *contactInfo = m_contactsHash.value(callerNumber);
-            if (!contactInfo->isEmpty())
-                emit channelCreated(contactInfo);
+            QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
+            m_callIdAndOtherLegHash.insert(callId, otherLegCallId);
             return;
         }
 
-        QByteArray hashTemplate(callerNumber.toLatin1());
-        hashTemplate.append(":");
-        hashTemplate.append(m_settings->value("md5_hash", kMd5Hash).toString());
+        if (m_callersHash.contains(callId))
+            return;
 
-        QByteArray hash = QCryptographicHash::hash(hashTemplate, QCryptographicHash::Md5).toHex();
+        QString callerIdName = args.value("Caller-ID-Name").toString();
+        QString callerIdNumber = args.value("Caller-ID-Number").toString();
+        QString callerDialed = args.value("Request").toString();
+        int separatorIndex = callerDialed.indexOf("@");
+        callerDialed = callerDialed.mid(0, separatorIndex);
 
-        QNetworkRequest req;
         QString url(m_settings->value("info_url", kInfoUrl).toString());
-        url.append(kCallerInfoQuery);
-        req.setUrl(QUrl(url.arg(callerNumber).arg(hash.data())));
-        QNetworkReply *reply = m_nam->get(req);
-        reply->setProperty("caller_number", callerNumber);
+        QRegExp regExp("[^\\{]*\\{\\{([^\\}]*)\\}\\}");
+        if (regExp.indexIn(url) != -1)
+        {
+            QString key = regExp.cap(1);
+            QString value = args.value(key).toString();
+            url.replace("{{" + key + "}}", value);
+        }
 
-        m_contactsHash.insert(callerNumber, new ContactInfo());
+        Caller caller(callerIdName, callerIdNumber, callerDialed, url);
+        m_callersHash.insert(callId, caller);
 
-        connect(reply, &QNetworkReply::finished,
-                this, &WebSocketManager::retrieveCallerInfoFinished);
+        emit channelCreated(callId, caller);
     }
     else if (eventName == "CHANNEL_ANSWER")
     {
         QJsonObject args = jsonDocument.object().value("args").toObject();
         QString callDirection = args.value("Call-Direction").toString();
 
-        if (callDirection != "inbound")
+        if (callDirection != "outbound")
             return;
 
         QString callId = args.value("Call-ID").toString();
-        QString calleeNumber = args.value("Callee-ID-Number").toString();
-        if (!calleeNumber.isEmpty())
+        QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
+        if (!m_callIdAndOtherLegHash.contains(callId))
         {
-            bool ok;
-            qlonglong number = calleeNumber.toLongLong(&ok);
-            Q_UNUSED(number);
-            if (!ok)
-                return;
+            QString calleeNumber = args.value("Callee-ID-Number").toString();
+            QString calleeName = args.value("Callee-ID-Name").toString();
+            emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
+            return;
         }
 
-        QString callerNumber = m_contactCallIdHash.key(callId);
-
-        if (m_contactsHash.contains(callerNumber))
+        QString otherLegCallIdFromCreate = m_callIdAndOtherLegHash.value(callId);
+        m_callIdAndOtherLegHash.remove(callId);
+        if (otherLegCallIdFromCreate != otherLegCallId)
         {
-            ContactInfo *contactInfo = m_contactsHash.value(callerNumber);
-            if (!contactInfo->isEmpty())
-            {
-                emit channelAnswered(contactInfo);
-                m_contactCallIdHash.remove(callerNumber);
-            }
+            QString calleeNumber = args.value("Callee-ID-Number").toString();
+            QString calleeName = args.value("Callee-ID-Name").toString();
+            emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
+        }
+        else
+        {
+            emit channelAnswered(otherLegCallId);
         }
     }
     else if (eventName == "CHANNEL_DESTROY")
     {
         QJsonObject args = jsonDocument.object().value("args").toObject();
-        //QString callerNumber = args.value("Caller-ID-Number").toString();
         QString callId = args.value("Call-ID").toString();
+        if (!m_callersHash.contains(callId))
+            return;
 
-        if (m_createChannelHash.contains(callId))
-        {
-            QString number = m_createChannelHash.value(callId);
-            m_createChannelHash.remove(callId);
-
-            if (!m_createChannelHash.values().contains(number))
-            {
-                ContactInfo *contactInfo = m_contactsHash.value(number);
-                m_contactsHash.remove(number);
-                emit channelDestroyed(contactInfo);
-            }
-        }
+        emit channelDestroyed(callId);
+        m_callersHash.remove(callId);
     }
-}
-
-void WebSocketManager::retrieveCallerInfoFinished()
-{
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-    QByteArray data = reply->readAll();
-    QString callerNumber = reply->property("caller_number").toString();
-    reply->deleteLater();
-
-    QJsonParseError error;
-    QJsonDocument document = QJsonDocument::fromJson(data, &error);
-    if (error.error != QJsonParseError::NoError)
-        return;
-
-    QString contactPerson = document.object().value("contact_person").toString();
-    QString loginName = document.object().value("login_name").toString();
-    QString callingNumber = document.object().value("calling_number").toString();
-    QString companyName = document.object().value("company_name").toString();
-    double balance = document.object().value("cur_balance").toDouble();
-
-    ContactInfo *ci = new ContactInfo();
-    ci->setContactPerson(contactPerson);
-    ci->setLogin(loginName);
-    ci->setCallingNumber(callingNumber);
-    ci->setCompanyName(companyName);
-    ci->setBalance(balance);
-
-    m_contactsHash.insert(callerNumber, ci);
-
-    emit channelCreated(ci);
 }

@@ -1,36 +1,9 @@
-/* --------------------------------------------------------------------------------------------------------------------------
- * ** 
- * ** Ordered by Kirill Sysoev kirill.sysoev@gmail.com
- * ** (OnNet communications Inc. http://onnet.su)
- * ** 
- * ** Developed by Alexey Lysenko lysenkoalexmail@gmail.com
- * ** 
- * ** Please report bugs and provide any possible patches directly to this repository: https://github.com/onnet/kazoo_popup.git
- * ** 
- * ** If you would like to order additional development, contact Alexey Lysenko over email lysenkoalexmail@gmail.com directly.
- * ** 
- * ** 
- * ** This application:
- * **  - connects to Kazoo whapp blackhole;
- * **  - listens for incoming calls;
- * **  - queries third party server whether it knows anything about caller's number;
- * **  - Pop's Up window with provided info.
- * ** 
- * ** It is:
- * **  - written in Qt which promises to be crossplatform application (hopefully);
- * **  - is NOT production ready, but intended to be a simple example of using blachole whapp
- * **    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632).
- * ** 
- * ** Good luck!
- * ** 
- * ** -------------------------------------------------------------------------------------------------------------------------*/
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 #include "defaults.h"
 
-#include "contactinfo.h"
+#include "caller.h"
 #include "informerdialog.h"
 #include "websocketmanager.h"
 
@@ -38,24 +11,29 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QDesktopWidget>
-
 #include <QSettings>
-#include <QFile>
+#include <QDesktopServices>
 #include <QTimer>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/res/kazoo_32.png"));
 
     createTrayIcon();
+
+    loadSettings();
 
     m_wsMan = new WebSocketManager(this);
     connect(m_wsMan, &WebSocketManager::channelCreated,
             this, &MainWindow::onChannelCreated);
     connect(m_wsMan, &WebSocketManager::channelAnswered,
             this, &MainWindow::onChannelAnswered);
+    connect(m_wsMan, &WebSocketManager::channelAnsweredAnother,
+            this, &MainWindow::onChannelAnsweredAnother);
     connect(m_wsMan, &WebSocketManager::channelDestroyed,
             this, &MainWindow::onChannelDestroyed);
 
@@ -74,66 +52,85 @@ MainWindow::~MainWindow()
 
 void MainWindow::createTrayIcon()
 {
-    m_trayIcon = new QSystemTrayIcon(QIcon(":/res/icon.png"), this);
+    m_trayIcon = new QSystemTrayIcon(QIcon(":/res/kazoo_32.png"), this);
+    m_trayIcon->setToolTip(tr("Kazoo Popup"));
 
     QMenu *menu = new QMenu(this);
     menu->addAction(tr("Settings"), this, SLOT(show()));
+    menu->addAction(tr("Close all popups"), this, SLOT(closeAllPopups()));
     menu->addSeparator();
-    menu->addAction(tr("Quit"), qApp, SLOT(quit()));
+    menu->addAction(tr("Quit"), this, SLOT(quit()));
     m_trayIcon->setContextMenu(menu);
 
     m_trayIcon->show();
 }
 
-void MainWindow::onChannelCreated(ContactInfo *contactInfo)
+void MainWindow::onChannelCreated(const QString &callId, const Caller &caller)
 {
-    if (m_informerDialogsHash.contains(contactInfo))
-    {
-        InformerDialog *informerDialog = m_informerDialogsHash.value(contactInfo);
-        if (informerDialog->isVisible())
-            return;
+    InformerDialog *informerDialog = new InformerDialog();
 
-        informerDialog->setAnswered(false);
-        informerDialog->show();
-    }
-    else if (m_attachedDialogsHash.contains(contactInfo))
-    {
-        return;
-    }
-    else
-    {
-        InformerDialog *informerDialog = new InformerDialog();
-        connect(informerDialog, &InformerDialog::finished,
-                this, &MainWindow::processDialogFinished);
-        connect(informerDialog, &InformerDialog::dialogAttached,
-                this, &MainWindow::processDialogAttached);
-        informerDialog->setContactInfo(contactInfo);
-        m_informerDialogsHash.insert(contactInfo, informerDialog);
-        informerDialog->adjustSize();
-        QRect rect = qApp->desktop()->availableGeometry();
-        informerDialog->setGeometry(rect.width() - informerDialog->width(),
-                                    rect.height() - informerDialog->height(),
-                                    informerDialog->width(),
-                                    informerDialog->height());
-        informerDialog->show();
-    }
-}
+    connect(informerDialog, &InformerDialog::finished,
+            this, &MainWindow::processDialogFinished);
+    connect(informerDialog, &InformerDialog::dialogAttached,
+            this, &MainWindow::processDialogAttached);
 
-void MainWindow::onChannelAnswered(ContactInfo *contactInfo)
-{
-    if (!m_informerDialogsHash.contains(contactInfo))
-        return;
-
-    InformerDialog *informerDialog = m_informerDialogsHash.value(contactInfo);
-    if (informerDialog->isVisible())
-        informerDialog->setAnswered(true);
+    informerDialog->setCaller(caller);
+    informerDialog->adjustSize();
+    QRect rect = qApp->desktop()->availableGeometry();
+    informerDialog->setGeometry(rect.width() - informerDialog->width(),
+                                rect.height() - informerDialog->height(),
+                                informerDialog->width(),
+                                informerDialog->height());
+    informerDialog->show();
 
     QTimer *timer = new QTimer();
     connect(timer, &QTimer::timeout,
             this, &MainWindow::timeout);
     timer->setSingleShot(true);
-    m_timersHash.insert(contactInfo, timer);
-    timer->start(15000);
+    m_timersHash.insert(callId, timer);
+    timer->start(ui->popupTimeoutSpinBox->value() * 1000);
+
+    m_informerDialogsHash.insert(callId, informerDialog);
+
+    if (ui->autoOpenUrlCheckBox->isChecked())
+        QDesktopServices::openUrl(QUrl(caller.callerUrl()));
+}
+
+void MainWindow::onChannelAnswered(const QString &callId)
+{
+    if (!m_informerDialogsHash.contains(callId))
+        return;
+
+    InformerDialog *informerDialog = m_informerDialogsHash.value(callId);
+    if (informerDialog->isVisible())
+        informerDialog->setState(InformerDialog::kStateAnswered);
+
+    if (m_timersHash.contains(callId))
+    {
+        QTimer *timer = m_timersHash.value(callId);
+        timer->start();
+    }
+}
+
+void MainWindow::onChannelAnsweredAnother(const QString &callId,
+                                          const QString &calleeNumber,
+                                          const QString &calleeName)
+{
+    if (!m_informerDialogsHash.contains(callId))
+        return;
+
+    InformerDialog *informerDialog = m_informerDialogsHash.value(callId);
+    if (informerDialog->isVisible())
+    {
+        informerDialog->setCallee(calleeNumber, calleeName);
+        informerDialog->setState(InformerDialog::kStateAnsweredAnother);
+    }
+
+    if (m_timersHash.contains(callId))
+    {
+        QTimer *timer = m_timersHash.value(callId);
+        timer->start();
+    }
 }
 
 void MainWindow::timeout()
@@ -143,42 +140,38 @@ void MainWindow::timeout()
     if (timer == nullptr)
         return;
 
-    ContactInfo *contactInfo = m_timersHash.key(timer);
+    QString callId = m_timersHash.key(timer);
 
-    if (!m_informerDialogsHash.contains(contactInfo))
+    if (!m_informerDialogsHash.contains(callId))
         return;
 
-    InformerDialog *informerDialog = m_informerDialogsHash.value(contactInfo);
+    InformerDialog *informerDialog = m_informerDialogsHash.value(callId);
     if (informerDialog->isVisible())
         informerDialog->close();
 
-    m_informerDialogsHash.remove(contactInfo);
+    m_informerDialogsHash.remove(callId);
     informerDialog->deleteLater();
-
-    delete contactInfo;
-    contactInfo = nullptr;
 }
 
-void MainWindow::onChannelDestroyed(ContactInfo *contactInfo)
+void MainWindow::onChannelDestroyed(const QString &callId)
 {
-    if (!m_informerDialogsHash.contains(contactInfo))
+    if (!m_informerDialogsHash.contains(callId))
         return;
 
-    InformerDialog *informerDialog = m_informerDialogsHash.value(contactInfo);
+    InformerDialog *informerDialog = m_informerDialogsHash.value(callId);
     if (informerDialog->isVisible() && !informerDialog->isAttached())
         informerDialog->close();
 
-    m_informerDialogsHash.remove(contactInfo);
+    m_informerDialogsHash.remove(callId);
     informerDialog->deleteLater();
-    if (m_timersHash.contains(contactInfo))
+
+    if (m_timersHash.contains(callId))
     {
-        QTimer *timer = m_timersHash.value(contactInfo);
-        m_timersHash.remove(contactInfo);
+        QTimer *timer = m_timersHash.value(callId);
+        m_timersHash.remove(callId);
         timer->stop();
         timer->deleteLater();
     }
-
-    delete contactInfo;
 }
 
 bool MainWindow::isCorrectSettings() const
@@ -208,62 +201,94 @@ bool MainWindow::isCorrectSettings() const
     if (!ok)
         return false;
 
-    ok &= !ui->md5HashLineEdit->text().isEmpty();
-    if (!ok)
-        return false;
-
     return ok;
+}
+
+void setRunAtStartup()
+{
+#ifdef Q_OS_WIN
+    QSettings settings(kRegistryKeyRun, QSettings::NativeFormat);
+    if (settings.contains(qApp->applicationName()))
+        return;
+
+    QString appExePath = QString("%1/%2.exe").arg(qApp->applicationDirPath(), qApp->applicationName());
+    QString appExeNativePath = QDir::toNativeSeparators(appExePath);
+    settings.setValue(qApp->applicationName(), appExeNativePath);
+#elif Q_OS_MAC
+
+#endif
+}
+
+void unsetRunAtStartup()
+{
+#ifdef Q_OS_WIN
+    QSettings settings(kRegistryKeyRun, QSettings::NativeFormat);
+    settings.remove(qApp->applicationName());
+#elif Q_OS_MAC
+
+#endif
 }
 
 void MainWindow::saveSettings()
 {
     if (!isCorrectSettings())
     {
-        QMessageBox::warning(this, tr("Call Informer"), tr("All fields must be filled!"));
+        QMessageBox::warning(this, qApp->applicationName(), tr("All fields must be filled!"));
         return;
     }
 
-    QSettings settings(qApp->applicationDirPath() + "/settings.ini", QSettings::IniFormat);
+    QSettings settings(dataDirPath() + "/settings.ini", QSettings::IniFormat);
     settings.setValue("login", ui->loginLineEdit->text());
     settings.setValue("password", ui->passwordLineEdit->text());
     settings.setValue("realm", ui->realmLineEdit->text());
     settings.setValue("auth_url", ui->authUrlLineEdit->text());
     settings.setValue("event_url", ui->eventUrlLineEdit->text());
     settings.setValue("info_url", ui->infoUrlLineEdit->text());
-    settings.setValue("md5_hash", ui->md5HashLineEdit->text());
+    settings.setValue("popup_timeout", ui->popupTimeoutSpinBox->value());
+    settings.setValue("auto_open_url", ui->autoOpenUrlCheckBox->isChecked());
+    settings.setValue("run_at_startup", ui->runAtStartupCheckBox->isChecked());
 
+    if (ui->runAtStartupCheckBox->isChecked())
+    {
+        setRunAtStartup();
+    }
+    else
+    {
+        unsetRunAtStartup();
+    }
+
+    m_wsMan->start();
     close();
 }
 
 void MainWindow::loadSettings()
 {
-    QSettings settings(qApp->applicationDirPath() + "/settings.ini", QSettings::IniFormat);
+    QSettings settings(dataDirPath() + "/settings.ini", QSettings::IniFormat);
     ui->loginLineEdit->setText(settings.value("login", kLogin).toString());
     ui->passwordLineEdit->setText(settings.value("password", kPassword).toString());
     ui->realmLineEdit->setText(settings.value("realm", kRealm).toString());
     ui->authUrlLineEdit->setText(settings.value("auth_url", kAuthUrl).toString());
     ui->eventUrlLineEdit->setText(settings.value("event_url", kEventUrl).toString());
     ui->infoUrlLineEdit->setText(settings.value("info_url", kInfoUrl).toString());
-    ui->md5HashLineEdit->setText(settings.value("md5_hash", kMd5Hash).toString());
-}
-
-void MainWindow::showEvent(QShowEvent *event)
-{
-    if (QFile::exists(qApp->applicationDirPath() + "/settings.ini"))
-        loadSettings();
-
-    QMainWindow::showEvent(event);
+    ui->popupTimeoutSpinBox->setValue(settings.value("popup_timeout", kPopupTimeout).toInt());
+    ui->autoOpenUrlCheckBox->setChecked(settings.value("auto_open_url", kAutoOpenUrl).toBool());
+    ui->runAtStartupCheckBox->setChecked(settings.value("run_at_startup", kRunAtStartup).toBool());
 }
 
 void MainWindow::processDialogFinished()
 {
     InformerDialog *informerDialog = qobject_cast<InformerDialog*>(sender());
-    m_attachedDialogsHash.remove(informerDialog->contactInfo());
-    if (!m_informerDialogsHash.values().contains(informerDialog))
-        return;
 
-    ContactInfo *ci = m_informerDialogsHash.key(informerDialog);
-    m_informerDialogsHash.remove(ci);
+    if (m_informerDialogsHash.values().contains(informerDialog))
+    {
+        QString callId = m_informerDialogsHash.key(informerDialog);
+        m_informerDialogsHash.remove(callId);
+    }
+    else if (m_attachedDialogsHash.values().contains(informerDialog))
+    {
+        QString callId = m_attachedDialogsHash.key(informerDialog);
+        m_attachedDialogsHash.remove(callId);
+    }
 }
 
 void MainWindow::processDialogAttached(bool attached)
@@ -271,18 +296,44 @@ void MainWindow::processDialogAttached(bool attached)
     InformerDialog *informerDialog = qobject_cast<InformerDialog*>(sender());
     if (attached)
     {
-        m_attachedDialogsHash.insert(informerDialog->contactInfo(), informerDialog);
-        if (!m_informerDialogsHash.values().contains(informerDialog))
-            return;
-
-        m_informerDialogsHash.remove(m_informerDialogsHash.key(informerDialog));
+        QString callId = m_informerDialogsHash.key(informerDialog);
+        m_attachedDialogsHash.insert(callId, informerDialog);
+        m_informerDialogsHash.remove(callId);
     }
     else
     {
-        m_attachedDialogsHash.remove(informerDialog->contactInfo());
-        if (m_informerDialogsHash.values().contains(informerDialog))
-            return;
-
-        m_informerDialogsHash.insert(informerDialog->contactInfo(), informerDialog);
+        QString callId = m_attachedDialogsHash.key(informerDialog);
+        m_attachedDialogsHash.remove(callId);
+        m_informerDialogsHash.insert(callId, informerDialog);
     }
+}
+
+void MainWindow::closeAllPopups()
+{
+    foreach (InformerDialog* informerDialog, m_informerDialogsHash)
+    {
+        informerDialog->close();
+        informerDialog->deleteLater();
+    }
+    m_informerDialogsHash.clear();
+
+    foreach (InformerDialog* informerDialog, m_attachedDialogsHash)
+    {
+        informerDialog->close();
+        informerDialog->deleteLater();
+    }
+    m_attachedDialogsHash.clear();
+}
+
+void MainWindow::quit()
+{
+    int result = QMessageBox::question(this,
+                                       qApp->applicationName(),
+                                       tr("Do you really want to quit?"),
+                                       QMessageBox::Yes | QMessageBox::No,
+                                       QMessageBox::No);
+    if (result != QMessageBox::Yes)
+        return;
+
+    QTimer::singleShot(0, qApp, SLOT(quit()));
 }

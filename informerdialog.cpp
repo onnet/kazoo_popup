@@ -1,36 +1,11 @@
-/* --------------------------------------------------------------------------------------------------------------------------
- * ** 
- * ** Ordered by Kirill Sysoev kirill.sysoev@gmail.com
- * ** (OnNet communications Inc. http://onnet.su)
- * ** 
- * ** Developed by Alexey Lysenko lysenkoalexmail@gmail.com
- * ** 
- * ** Please report bugs and provide any possible patches directly to this repository: https://github.com/onnet/kazoo_popup.git
- * ** 
- * ** If you would like to order additional development, contact Alexey Lysenko over email lysenkoalexmail@gmail.com directly.
- * ** 
- * ** 
- * ** This application:
- * **  - connects to Kazoo whapp blackhole;
- * **  - listens for incoming calls;
- * **  - queries third party server whether it knows anything about caller's number;
- * **  - Pop's Up window with provided info.
- * ** 
- * ** It is:
- * **  - written in Qt which promises to be crossplatform application (hopefully);
- * **  - is NOT production ready, but intended to be a simple example of using blachole whapp
- * **    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632).
- * ** 
- * ** Good luck!
- * ** 
- * ** -------------------------------------------------------------------------------------------------------------------------*/
-
 #include "informerdialog.h"
 #include "ui_informerdialog.h"
 
-#include "contactinfo.h"
+#include "caller.h"
 
 #include <QMouseEvent>
+
+#include <QDesktopServices>
 
 InformerDialog::InformerDialog(QWidget *parent) :
     QDialog(parent),
@@ -44,6 +19,8 @@ InformerDialog::InformerDialog(QWidget *parent) :
             this, &InformerDialog::hide);
     connect(ui->attachToolButton, &QToolButton::clicked,
             this, &InformerDialog::processAttach);
+    connect(ui->openUrlToolButton, &QToolButton::clicked,
+            this, &InformerDialog::openCallerUrl);
 }
 
 InformerDialog::~InformerDialog()
@@ -51,23 +28,37 @@ InformerDialog::~InformerDialog()
     delete ui;
 }
 
-void InformerDialog::setContactInfo(ContactInfo *contactInfo)
+void InformerDialog::setCaller(const Caller &caller)
 {
-    m_contactInfo = contactInfo;
-    ui->informationLabel->setText(contactInfo->toHtml());
+    ui->informationLabel->setText(caller.callerInfo());
+    m_callerUrl = caller.callerUrl();
 }
 
-ContactInfo *InformerDialog::contactInfo() const
+void InformerDialog::setCallee(const QString &calleeNumber, const QString &calleeName)
 {
-    return m_contactInfo;
+    QString text = ui->informationLabel->text();
+    text.append("\nCallee number: " + calleeNumber + "\nCallee name: " + calleeName);
+    ui->informationLabel->setText(text);
+    adjustSize();
 }
 
-void InformerDialog::setAnswered(bool answered)
+void InformerDialog::setState(State state)
 {
-    if (answered)
+    if (state == kStateAnswered)
+    {
         setStyleSheet("QDialog {\nbackground-color: #63C248;\n}");
-    else
+        ui->stateLabel->setText(tr("State: Answered"));
+    }
+    else if (state == kStateAnsweredAnother)
+    {
+        setStyleSheet("QDialog {\nbackground-color: #FFBA66;\n}");
+        ui->stateLabel->setText(tr("State: Answered by another user"));
+    }
+    else if (state == kStateRinging)
+    {
         setStyleSheet("QDialog {\nbackground-color: #FFFFBF;\n}");
+        ui->stateLabel->setText(tr("State: Ringing"));
+    }
 }
 
 void InformerDialog::mousePressEvent(QMouseEvent *event)
@@ -113,5 +104,17 @@ void InformerDialog::processAttach(bool checked)
 {
     emit dialogAttached(checked);
     if (checked)
+    {
         setStyleSheet("QDialog {\nbackground-color: #BFDFFF;\n}");
+        ui->stateLabel->setText(tr("State: Attached"));
+    }
+    else
+    {
+        ui->stateLabel->setText(tr("State: Detached"));
+    }
+}
+
+void InformerDialog::openCallerUrl()
+{
+    QDesktopServices::openUrl(QUrl(m_callerUrl));
 }

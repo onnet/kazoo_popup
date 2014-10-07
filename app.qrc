@@ -1,7 +1,13 @@
 <RCC>
     <qresource prefix="/">
-        <file>res/icon.png</file>
+        <file>res/kazoo.png</file>
+		<file>res/kazoo_16.png</file>
+		<file>res/kazoo_32.png</file>
+		<file>res/kazoo_logo.png</file>
+		<file>res/kazoo_logo_16.png</file>
+		<file>res/kazoo_logo_32.png</file>
 		<file>res/close.png</file>
 		<file>res/attach.png</file>
+		<file>res/open_url.png</file>
     </qresource>
 </RCC> 

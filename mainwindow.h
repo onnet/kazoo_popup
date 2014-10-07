@@ -1,30 +1,3 @@
-/* --------------------------------------------------------------------------------------------------------------------------
- * ** 
- * ** Ordered by Kirill Sysoev kirill.sysoev@gmail.com
- * ** (OnNet communications Inc. http://onnet.su)
- * ** 
- * ** Developed by Alexey Lysenko lysenkoalexmail@gmail.com
- * ** 
- * ** Please report bugs and provide any possible patches directly to this repository: https://github.com/onnet/kazoo_popup.git
- * ** 
- * ** If you would like to order additional development, contact Alexey Lysenko over email lysenkoalexmail@gmail.com directly.
- * ** 
- * ** 
- * ** This application:
- * **  - connects to Kazoo whapp blackhole;
- * **  - listens for incoming calls;
- * **  - queries third party server whether it knows anything about caller's number;
- * **  - Pop's Up window with provided info.
- * ** 
- * ** It is:
- * **  - written in Qt which promises to be crossplatform application (hopefully);
- * **  - is NOT production ready, but intended to be a simple example of using blachole whapp
- * **    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632).
- * ** 
- * ** Good luck!
- * ** 
- * ** -------------------------------------------------------------------------------------------------------------------------*/
-
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -38,7 +11,7 @@ class QSystemTrayIcon;
 
 class WebSocketManager;
 class InformerDialog;
-class ContactInfo;
+class Caller;
 
 class MainWindow : public QMainWindow
 {
@@ -48,9 +21,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-protected:
-    void showEvent(QShowEvent *event);
-
 private:
     void createTrayIcon();
     bool isCorrectSettings() const;
@@ -58,16 +28,17 @@ private:
     Ui::MainWindow *ui;
     QSystemTrayIcon *m_trayIcon;
 
-    QHash<ContactInfo*, InformerDialog*> m_informerDialogsHash;
-    QHash<ContactInfo*, InformerDialog*> m_attachedDialogsHash;
-    QHash<ContactInfo*, QTimer*> m_timersHash;
+    QHash<QString, InformerDialog*> m_informerDialogsHash;
+    QHash<QString, InformerDialog*> m_attachedDialogsHash;
+    QHash<QString, QTimer*> m_timersHash;
 
     WebSocketManager *m_wsMan;
 
 private slots:
-    void onChannelCreated(ContactInfo *contactInfo);
-    void onChannelAnswered(ContactInfo *contactInfo);
-    void onChannelDestroyed(ContactInfo *contactInfo);
+    void onChannelCreated(const QString &callId, const Caller &caller);
+    void onChannelAnswered(const QString &callId);
+    void onChannelAnsweredAnother(const QString &callId, const QString &calleeNumber, const QString &calleeName);
+    void onChannelDestroyed(const QString &callId);
 
     void saveSettings();
     void loadSettings();
@@ -76,6 +47,9 @@ private slots:
 
     void processDialogFinished();
     void processDialogAttached(bool attached);
+
+    void closeAllPopups();
+    void quit();
 };
 
 #endif // MAINWINDOW_H

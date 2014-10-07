@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
-    <height>284</height>
+    <width>633</width>
+    <height>285</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,87 +15,40 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="loginLineEdit">
-      <property name="text">
-       <string>admin</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Md5 secret</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Password</string>
-      </property>
-     </widget>
-    </item>
     <item row="6" column="1">
      <widget class="QLineEdit" name="infoUrlLineEdit">
       <property name="text">
-       <string>https://onnet.su/api/onnet/cidinfo</string>
+       <string>http://localhost/kazoo_popup.php?caller_number={{Caller-ID-Number}}</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_6">
+    <item row="7" column="0">
+     <widget class="QLabel" name="label_7">
       <property name="text">
-       <string>Info url</string>
+       <string>Popup timeout</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>Event url</string>
+    <item row="10" column="0" colspan="2">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>Realm</string>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
       </property>
-     </widget>
+     </spacer>
     </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="passwordLineEdit">
       <property name="text">
-       <string>Login</string>
+       <string>temp1phone!</string>
       </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>Auth url</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="realmLineEdit">
-      <property name="text">
-       <string>blackhole.sip3.onnet.su</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="authUrlLineEdit">
-      <property name="text">
-       <string>https://kz527.onnet.su:8443/v1/user_auth</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLineEdit" name="eventUrlLineEdit">
-      <property name="text">
-       <string>http://kz527.onnet.su:5555</string>
+      <property name="echoMode">
+       <enum>QLineEdit::Password</enum>
       </property>
      </widget>
     </item>
@@ -130,45 +83,100 @@
       </item>
      </layout>
     </item>
-    <item row="8" column="1">
-     <widget class="QLineEdit" name="md5HashLineEdit">
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="eventUrlLineEdit">
       <property name="text">
-       <string>vhbxzj947yisfbl</string>
+       <string>http://api.sandbox.2600hz.com:5555</string>
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="passwordLineEdit">
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="authUrlLineEdit">
       <property name="text">
-       <string>Black7Hole$5</string>
-      </property>
-      <property name="echoMode">
-       <enum>QLineEdit::Password</enum>
+       <string>http://api.sandbox.2600hz.com:8000/v1/user_auth</string>
       </property>
      </widget>
     </item>
-    <item row="10" column="0" colspan="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="realmLineEdit">
+      <property name="text">
+       <string>a1722b.sip.sandbox.2600hz.com</string>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Auth url</string>
       </property>
-     </spacer>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Login</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Realm</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Event url</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Password</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="loginLineEdit">
+      <property name="text">
+       <string>testuser1</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1">
+     <widget class="QSpinBox" name="popupTimeoutSpinBox">
+      <property name="minimum">
+       <number>5</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0" colspan="2">
+     <widget class="QCheckBox" name="autoOpenUrlCheckBox">
+      <property name="text">
+       <string>Automatically open caller info url</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Info url</string>
+      </property>
+     </widget>
     </item>
     <item row="9" column="0" colspan="2">
-     <widget class="QLabel" name="label_8">
-      <property name="font">
-       <font>
-        <italic>true</italic>
-       </font>
-      </property>
+     <widget class="QCheckBox" name="runAtStartupCheckBox">
       <property name="text">
-       <string>New settings will be applied after restarting application</string>
+       <string>Automatically run at system startup</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
