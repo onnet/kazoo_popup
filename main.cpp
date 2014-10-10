@@ -1,10 +1,14 @@
 #include "mainwindow.h"
 
-#include <QApplication>
+#include <QtSingleApplication>
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QtSingleApplication a(argc, argv);
+
+    if (a.isRunning())
+        return 0;
+
     a.setQuitOnLastWindowClosed(false);
 
     MainWindow w;

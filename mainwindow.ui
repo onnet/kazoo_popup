@@ -184,6 +184,19 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>loginLineEdit</tabstop>
+  <tabstop>passwordLineEdit</tabstop>
+  <tabstop>realmLineEdit</tabstop>
+  <tabstop>authUrlLineEdit</tabstop>
+  <tabstop>eventUrlLineEdit</tabstop>
+  <tabstop>infoUrlLineEdit</tabstop>
+  <tabstop>popupTimeoutSpinBox</tabstop>
+  <tabstop>autoOpenUrlCheckBox</tabstop>
+  <tabstop>runAtStartupCheckBox</tabstop>
+  <tabstop>okPushButton</tabstop>
+  <tabstop>cancelPushButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
