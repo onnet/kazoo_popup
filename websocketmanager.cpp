@@ -14,26 +14,35 @@
 
 #include <QSettings>
 
+#include <QTimer>
+
 static const char * const kRetrieveWsPath = "/socket.io/1/";
 static const char * const kWsPath = "/socket.io/1/websocket/";
+
+static const int kCheckPingTimeout = 30000;
+static const int kPermittedPingTimeout = 15000;
 
 WebSocketManager::WebSocketManager(QObject *parent) :
     QObject(parent)
 {
     m_nam = new QNetworkAccessManager(this);
+    m_timer = new QTimer(this);
+    connect(m_timer, &QTimer::timeout,
+            this, &WebSocketManager::checkPingTimeout);
 }
 
 WebSocketManager::~WebSocketManager()
 {
     if (m_webSocket)
-    {
-        m_webSocket->close();
         m_webSocket->deleteLater();
-    }
+
+    if (m_settings)
+        m_settings->deleteLater();
 }
 
 void WebSocketManager::start()
 {
+    m_timer->start(kCheckPingTimeout);
     m_callersHash.clear();
 
     if (m_settings)
@@ -45,8 +54,8 @@ void WebSocketManager::start()
 
     if (m_webSocket)
     {
-        m_webSocket->close();
         m_webSocket->deleteLater();
+        m_webSocket = nullptr;
     }
 
     retrieveAuthToken();
@@ -54,15 +63,20 @@ void WebSocketManager::start()
 
 void WebSocketManager::stop()
 {
+    m_timer->stop();
+
     m_callersHash.clear();
 
     if (m_settings)
+    {
         m_settings->deleteLater();
+        m_settings = nullptr;
+    }
 
     if (m_webSocket)
     {
-        m_webSocket->close();
         m_webSocket->deleteLater();
+        m_webSocket = nullptr;
     }
 }
 
@@ -87,18 +101,29 @@ void WebSocketManager::retrieveAuthToken()
     QNetworkReply *reply = m_nam->put(req, json);
     connect(reply, &QNetworkReply::finished,
             this, &WebSocketManager::retrieveAuthTokenFinished);
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+            this, SLOT(handleConnectionError()));
 }
 
 void WebSocketManager::retrieveAuthTokenFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        reply->deleteLater();
+        return;
+    }
+
     QByteArray data = reply->readAll();
     reply->deleteLater();
 
-    QJsonParseError error;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &error);
-    if (error.error != QJsonParseError::NoError)
+    QJsonParseError err;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &err);
+    if (err.error != QJsonParseError::NoError)
+    {
+        handleConnectionError();
         return;
+    }
 
     m_authToken = jsonDocument.object().value("auth_token").toString();
     QJsonObject dataObject = jsonDocument.object().value("data").toObject();
@@ -111,11 +136,19 @@ void WebSocketManager::retrieveAuthTokenFinished()
     QNetworkReply *newReply = m_nam->get(req);
     connect(newReply, &QNetworkReply::finished,
             this, &WebSocketManager::retrieveWsAddressFinished);
+    connect(newReply, SIGNAL(error(QNetworkReply::NetworkError)),
+            this, SLOT(handleConnectionError()));
 }
 
 void WebSocketManager::retrieveWsAddressFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        reply->deleteLater();
+        return;
+    }
+
     QByteArray data = reply->readAll();
     reply->deleteLater();
 
@@ -132,6 +165,8 @@ void WebSocketManager::retrieveWsAddressFinished()
             this, &WebSocketManager::webSocketConnected);
     connect(m_webSocket, &QWebSocket::disconnected,
             this, &WebSocketManager::webSocketDisconnected);
+    connect(m_webSocket, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(handleConnectionError()));
 
     m_webSocket->open(wsUrl);
 }
@@ -150,6 +185,8 @@ void WebSocketManager::webSocketConnected()
 
     subscribe = QString("5:::{\"name\":\"subscribe\",\"args\":[{\"account_id\":\"%1\",\"auth_token\":\"%2\",\"binding\":\"call.CHANNEL_DESTROY.*\"}]}");
     m_webSocket->sendTextMessage(subscribe.arg(m_accountId, m_authToken));
+
+    emit connected();
 }
 
 void WebSocketManager::webSocketDisconnected()
@@ -159,6 +196,12 @@ void WebSocketManager::webSocketDisconnected()
 
 void WebSocketManager::webSocketTextMessageReceived(const QString &message)
 {
+    if (message.startsWith("2"))
+    {
+        m_lastPing = QDateTime::currentMSecsSinceEpoch();
+        return;
+    }
+
     if (!message.startsWith("5"))
         return;
 
@@ -174,8 +217,6 @@ void WebSocketManager::processWsData(const QString &data)
 
     if (error.error != QJsonParseError::NoError)
         return;
-
-    qDebug() << "\n" << data << "\n";
 
     QString eventName = jsonDocument.object().value("name").toString();
     if (eventName == "CHANNEL_CREATE")
@@ -255,4 +296,18 @@ void WebSocketManager::processWsData(const QString &data)
         emit channelDestroyed(callId);
         m_callersHash.remove(callId);
     }
+}
+
+void WebSocketManager::handleConnectionError()
+{
+    qDebug("WebSocket connection error");
+    stop();
+    emit connectionError();
+}
+
+void WebSocketManager::checkPingTimeout()
+{
+    qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+    if (currentTimestamp - m_lastPing > kPermittedPingTimeout)
+        handleConnectionError();
 }

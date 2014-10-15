@@ -36,6 +36,10 @@ MainWindow::MainWindow(QWidget *parent) :
             this, &MainWindow::onChannelAnsweredAnother);
     connect(m_wsMan, &WebSocketManager::channelDestroyed,
             this, &MainWindow::onChannelDestroyed);
+    connect(m_wsMan, &WebSocketManager::connected,
+            this, &MainWindow::handleWsConnected);
+    connect(m_wsMan, &WebSocketManager::connectionError,
+            this, &MainWindow::handleWsConnectionError);
 
     connect(ui->cancelPushButton, &QPushButton::clicked,
             this, &MainWindow::close);
@@ -52,10 +56,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::createTrayIcon()
 {
-    m_trayIcon = new QSystemTrayIcon(QIcon(":/res/kazoo_32.png"), this);
-    m_trayIcon->setToolTip(tr("Kazoo Popup"));
+    m_trayIcon = new QSystemTrayIcon(QIcon(":/res/kazoo_32_disabled.png"), this);
+    m_trayIcon->setToolTip(tr("Kazoo Popup - Connecting"));
 
     QMenu *menu = new QMenu(this);
+    QAction *stateAction = menu->addAction(tr("Connecting"));
+    stateAction->setDisabled(true);
+    menu->addSeparator();
     menu->addAction(tr("Settings"), this, SLOT(show()));
     menu->addAction(tr("Close all popups"), this, SLOT(closeAllPopups()));
     menu->addSeparator();
@@ -336,4 +343,45 @@ void MainWindow::quit()
         return;
 
     QTimer::singleShot(0, qApp, SLOT(quit()));
+}
+
+void MainWindow::handleWsConnected()
+{
+    m_trayIcon->setIcon(QIcon(":/res/kazoo_32.png"));
+    m_trayIcon->setToolTip(tr("Kazoo Popup - Connected"));
+    QMenu *menu = m_trayIcon->contextMenu();
+    QList<QAction*> actions = menu->actions();
+    QAction *stateAction = actions.first();
+    stateAction->setText(tr("Connected"));
+    QAction *action = actions.at(2);
+    QAction *separator = actions.at(3);
+    if (action->text() != tr("Try reconnect..."))
+        return;
+
+    menu->removeAction(action);
+    menu->removeAction(separator);
+    m_trayIcon->showMessage(qApp->applicationName(),
+                            tr("Connection established"));
+}
+
+void MainWindow::handleWsConnectionError()
+{
+    m_trayIcon->setIcon(QIcon(":/res/kazoo_32_error.png"));
+    m_trayIcon->setToolTip(tr("Kazoo Popup - Cannot establish connection"));
+    m_trayIcon->showMessage(qApp->applicationName(),
+                            tr("Cannot establish connection"),
+                            QSystemTrayIcon::Warning);
+
+    QMenu *menu = m_trayIcon->contextMenu();
+    QAction *stateAction = menu->actions().first();
+    stateAction->setText(tr("Connection error"));
+    QAction *action = menu->actions().at(2);
+    if (action->text() == tr("Try reconnect..."))
+        return;
+
+    QAction *reconnectAction = new QAction(tr("Try reconnect..."), this);
+    connect(reconnectAction, &QAction::triggered,
+            m_wsMan, &WebSocketManager::start);
+    menu->insertAction(action, reconnectAction);
+    menu->insertSeparator(action);
 }

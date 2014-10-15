@@ -39,6 +39,8 @@ private slots:
     void onChannelAnswered(const QString &callId);
     void onChannelAnsweredAnother(const QString &callId, const QString &calleeNumber, const QString &calleeName);
     void onChannelDestroyed(const QString &callId);
+    void handleWsConnectionError();
+    void handleWsConnected();
 
     void saveSettings();
     void loadSettings();
