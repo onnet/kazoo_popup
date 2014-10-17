@@ -16,6 +16,11 @@
 #include <QTimer>
 #include <QDir>
 
+#ifdef Q_OS_MAC
+#   include <QTemporaryFile>
+#   include <QProcess>
+#endif
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -221,8 +226,27 @@ void setRunAtStartup()
     QString appExePath = QString("%1/%2.exe").arg(qApp->applicationDirPath(), qApp->applicationName());
     QString appExeNativePath = QDir::toNativeSeparators(appExePath);
     settings.setValue(qApp->applicationName(), appExeNativePath);
-#elif Q_OS_MAC
+#elif defined Q_OS_MAC
+    QFile plistTemplateFile(":/res/mac/KazooPopup.restart.plist");
+    bool ok = plistTemplateFile.open(QIODevice::ReadOnly);
+    QByteArray data = plistTemplateFile.readAll();
+    plistTemplateFile.close();
+    data.replace("/path/to/app", qApp->applicationDirPath().toLocal8Bit());
+    QTemporaryFile plistFile;
+    ok = plistFile.open();
+    plistFile.write(data);
+    plistFile.close();
+    QString fileName = plistFile.fileName();
 
+    QProcess shCp;
+    shCp.start("sh", QStringList() << "-c" << "cp " + fileName + " ~/Library/LaunchAgents/KazooPopup.restart.plist");
+    shCp.waitForStarted();
+    shCp.close();
+
+    QProcess shLaunchctl;
+    shLaunchctl.start("sh", QStringList() << "-c" << "launchctl load -w ~/Library/LaunchAgents/KazooPopup.restart.plist");
+    shLaunchctl.waitForStarted();
+    shLaunchctl.close();
 #endif
 }
 
@@ -231,8 +255,14 @@ void unsetRunAtStartup()
 #ifdef Q_OS_WIN
     QSettings settings(kRegistryKeyRun, QSettings::NativeFormat);
     settings.remove(qApp->applicationName());
-#elif Q_OS_MAC
+#elif defined Q_OS_MAC
+    if (!QFile::exists("~/Library/LaunchAgents/KazooPopup.restart.plist"))
+            return;
 
+    QProcess process;
+    process.start("launchctl unload -w ~/Library/LaunchAgents/KazooPopup.restart.plist");
+    process.waitForStarted();
+    process.close();
 #endif
 }
 
