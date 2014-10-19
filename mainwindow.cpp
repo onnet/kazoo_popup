@@ -227,6 +227,9 @@ void setRunAtStartup()
     QString appExeNativePath = QDir::toNativeSeparators(appExePath);
     settings.setValue(qApp->applicationName(), appExeNativePath);
 #elif defined Q_OS_MAC
+    if (QFile::exists("~/Library/LaunchAgents/KazooPopup.restart.plist"))
+            return;
+
     QFile plistTemplateFile(":/res/mac/KazooPopup.restart.plist");
     bool ok = plistTemplateFile.open(QIODevice::ReadOnly);
     QByteArray data = plistTemplateFile.readAll();
@@ -238,15 +241,8 @@ void setRunAtStartup()
     plistFile.close();
     QString fileName = plistFile.fileName();
 
-    QProcess shCp;
-    shCp.start("sh", QStringList() << "-c" << "cp " + fileName + " ~/Library/LaunchAgents/KazooPopup.restart.plist");
-    shCp.waitForStarted();
-    shCp.close();
-
-    QProcess shLaunchctl;
-    shLaunchctl.start("sh", QStringList() << "-c" << "launchctl load -w ~/Library/LaunchAgents/KazooPopup.restart.plist");
-    shLaunchctl.waitForStarted();
-    shLaunchctl.close();
+    QProcess::startDetached("sh", QStringList() << "-c" << "cp " + fileName + " ~/Library/LaunchAgents/KazooPopup.restart.plist");
+    QProcess::startDetached("sh", QStringList() << "-c" << "launchctl load -w ~/Library/LaunchAgents/KazooPopup.restart.plist");
 #endif
 }
 
@@ -254,15 +250,16 @@ void unsetRunAtStartup()
 {
 #ifdef Q_OS_WIN
     QSettings settings(kRegistryKeyRun, QSettings::NativeFormat);
+    if (!settings.contains(qApp->applicationName()))
+        return;
+
     settings.remove(qApp->applicationName());
 #elif defined Q_OS_MAC
     if (!QFile::exists("~/Library/LaunchAgents/KazooPopup.restart.plist"))
             return;
 
-    QProcess process;
-    process.start("launchctl unload -w ~/Library/LaunchAgents/KazooPopup.restart.plist");
-    process.waitForStarted();
-    process.close();
+    QProcess::startDetached("launchctl unload -w ~/Library/LaunchAgents/KazooPopup.restart.plist");
+    QFile::remove("~/Library/LaunchAgents/KazooPopup.restart.plist");
 #endif
 }
 
@@ -286,13 +283,9 @@ void MainWindow::saveSettings()
     settings.setValue("run_at_startup", ui->runAtStartupCheckBox->isChecked());
 
     if (ui->runAtStartupCheckBox->isChecked())
-    {
         setRunAtStartup();
-    }
     else
-    {
         unsetRunAtStartup();
-    }
 
     m_wsMan->start();
     close();
@@ -310,6 +303,11 @@ void MainWindow::loadSettings()
     ui->popupTimeoutSpinBox->setValue(settings.value("popup_timeout", kPopupTimeout).toInt());
     ui->autoOpenUrlCheckBox->setChecked(settings.value("auto_open_url", kAutoOpenUrl).toBool());
     ui->runAtStartupCheckBox->setChecked(settings.value("run_at_startup", kRunAtStartup).toBool());
+
+    if (ui->runAtStartupCheckBox->isChecked())
+        setRunAtStartup();
+    else
+        unsetRunAtStartup();
 }
 
 void MainWindow::processDialogFinished()
