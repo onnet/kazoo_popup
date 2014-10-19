@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>633</width>
-    <height>285</height>
+    <height>315</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,21 +15,43 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="6" column="1">
-     <widget class="QLineEdit" name="infoUrlLineEdit">
+    <item row="9" column="1">
+     <widget class="QComboBox" name="openUrlComboBox">
+      <item>
+       <property name="text">
+        <string>Off</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Auto open the url</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Auto open the url (on answer)</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="9" column="0">
+     <widget class="QLabel" name="label_9">
       <property name="text">
-       <string>http://localhost/kazoo_popup.php?caller_number={{Caller-ID-Number}}</string>
+       <string>Open caller info url</string>
       </property>
      </widget>
     </item>
-    <item row="7" column="0">
-     <widget class="QLabel" name="label_7">
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="passwordLineEdit">
       <property name="text">
-       <string>Popup timeout</string>
+       <string>temp1phone!</string>
+      </property>
+      <property name="echoMode">
+       <enum>QLineEdit::Password</enum>
       </property>
      </widget>
     </item>
-    <item row="10" column="0" colspan="2">
+    <item row="12" column="0" colspan="2">
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -42,17 +64,21 @@
       </property>
      </spacer>
     </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="passwordLineEdit">
+    <item row="7" column="0">
+     <widget class="QLabel" name="label_7">
       <property name="text">
-       <string>temp1phone!</string>
-      </property>
-      <property name="echoMode">
-       <enum>QLineEdit::Password</enum>
+       <string>Popup timeout</string>
       </property>
      </widget>
     </item>
-    <item row="11" column="0" colspan="2">
+    <item row="6" column="1">
+     <widget class="QLineEdit" name="infoUrlLineEdit">
+      <property name="text">
+       <string>http://localhost/kazoo_popup.php?caller_number={{Caller-ID-Number}}</string>
+      </property>
+     </widget>
+    </item>
+    <item row="13" column="0" colspan="2">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <spacer name="horizontalSpacer">
@@ -156,13 +182,6 @@
       </property>
      </widget>
     </item>
-    <item row="8" column="0" colspan="2">
-     <widget class="QCheckBox" name="autoOpenUrlCheckBox">
-      <property name="text">
-       <string>Automatically open caller info url</string>
-      </property>
-     </widget>
-    </item>
     <item row="6" column="0">
      <widget class="QLabel" name="label_6">
       <property name="text">
@@ -170,13 +189,39 @@
       </property>
      </widget>
     </item>
-    <item row="9" column="0" colspan="2">
+    <item row="11" column="0" colspan="2">
      <widget class="QCheckBox" name="runAtStartupCheckBox">
       <property name="text">
        <string>Automatically run at system startup</string>
       </property>
       <property name="checked">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="1">
+     <widget class="QComboBox" name="callDirectionComboBox">
+      <item>
+       <property name="text">
+        <string>Use inbound direction</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Use outbound direction</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Use both inbound and outbound directions</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>Call direction </string>
       </property>
      </widget>
     </item>
@@ -192,7 +237,6 @@
   <tabstop>eventUrlLineEdit</tabstop>
   <tabstop>infoUrlLineEdit</tabstop>
   <tabstop>popupTimeoutSpinBox</tabstop>
-  <tabstop>autoOpenUrlCheckBox</tabstop>
   <tabstop>runAtStartupCheckBox</tabstop>
   <tabstop>okPushButton</tabstop>
   <tabstop>cancelPushButton</tabstop>

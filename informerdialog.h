@@ -33,6 +33,9 @@ public:
     void setCaller(const Caller &caller);
     void setCallee(const QString &calleeNumber, const QString &calleeName);
 
+public slots:
+    void openCallerUrl();
+
 signals:
     void dialogAttached(bool attached);
 
@@ -52,7 +55,6 @@ private:
 
 private slots:
     void processAttach(bool checked);
-    void openCallerUrl();
 };
 
 #endif // INFORMERDIALOG_H

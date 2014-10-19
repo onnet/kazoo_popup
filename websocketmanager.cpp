@@ -219,83 +219,96 @@ void WebSocketManager::processWsData(const QString &data)
         return;
 
     QString eventName = jsonDocument.object().value("name").toString();
+    QJsonObject args = jsonDocument.object().value("args").toObject();
     if (eventName == "CHANNEL_CREATE")
     {
-        QJsonObject args = jsonDocument.object().value("args").toObject();
-        QString callDirection = args.value("Call-Direction").toString();
-
-        QString callId = args.value("Call-ID").toString();
-        if (callDirection == "outbound")
-        {
-            QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
-            m_callIdAndOtherLegHash.insert(callId, otherLegCallId);
-            return;
-        }
-
-        if (m_callersHash.contains(callId))
-            return;
-
-        QString callerIdName = args.value("Caller-ID-Name").toString();
-        QString callerIdNumber = args.value("Caller-ID-Number").toString();
-        QString callerDialed = args.value("Request").toString();
-        int separatorIndex = callerDialed.indexOf("@");
-        callerDialed = callerDialed.mid(0, separatorIndex);
-
-        QString url(m_settings->value("info_url", kInfoUrl).toString());
-        QRegExp regExp("[^\\{]*\\{\\{([^\\}]*)\\}\\}");
-        if (regExp.indexIn(url) != -1)
-        {
-            QString key = regExp.cap(1);
-            QString value = args.value(key).toString();
-            url.replace("{{" + key + "}}", value);
-        }
-
-        Caller caller(callerIdName, callerIdNumber, callerDialed, url);
-        m_callersHash.insert(callId, caller);
-
-        emit channelCreated(callId, caller);
+        processChannelCreate(args);
     }
     else if (eventName == "CHANNEL_ANSWER")
     {
-        QJsonObject args = jsonDocument.object().value("args").toObject();
-        QString callDirection = args.value("Call-Direction").toString();
-
-        if (callDirection != "outbound")
-            return;
-
-        QString callId = args.value("Call-ID").toString();
-        QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
-        if (!m_callIdAndOtherLegHash.contains(callId))
-        {
-            QString calleeNumber = args.value("Callee-ID-Number").toString();
-            QString calleeName = args.value("Callee-ID-Name").toString();
-            emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
-            return;
-        }
-
-        QString otherLegCallIdFromCreate = m_callIdAndOtherLegHash.value(callId);
-        m_callIdAndOtherLegHash.remove(callId);
-        if (otherLegCallIdFromCreate != otherLegCallId)
-        {
-            QString calleeNumber = args.value("Callee-ID-Number").toString();
-            QString calleeName = args.value("Callee-ID-Name").toString();
-            emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
-        }
-        else
-        {
-            emit channelAnswered(otherLegCallId);
-        }
+        processChannelAnswer(args);
     }
     else if (eventName == "CHANNEL_DESTROY")
     {
-        QJsonObject args = jsonDocument.object().value("args").toObject();
-        QString callId = args.value("Call-ID").toString();
-        if (!m_callersHash.contains(callId))
-            return;
-
-        emit channelDestroyed(callId);
-        m_callersHash.remove(callId);
+        processChannelDestroy(args);
     }
+}
+
+void WebSocketManager::processChannelCreate(const QJsonObject &args)
+{
+    QString callDirection = args.value("Call-Direction").toString();
+
+    QString callId = args.value("Call-ID").toString();
+    if (callDirection == "outbound")
+    {
+        QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
+        m_callIdAndOtherLegHash.insert(callId, otherLegCallId);
+        return;
+    }
+
+    if (m_callersHash.contains(callId))
+        return;
+
+    QString callerIdName = args.value("Caller-ID-Name").toString();
+    QString callerIdNumber = args.value("Caller-ID-Number").toString();
+    QString callerDialed = args.value("Request").toString();
+    int separatorIndex = callerDialed.indexOf("@");
+    callerDialed = callerDialed.mid(0, separatorIndex);
+
+    QString url(m_settings->value("info_url", kInfoUrl).toString());
+    QRegExp regExp("[^\\{]*\\{\\{([^\\}]*)\\}\\}");
+    if (regExp.indexIn(url) != -1)
+    {
+        QString key = regExp.cap(1);
+        QString value = args.value(key).toString();
+        url.replace("{{" + key + "}}", value);
+    }
+
+    Caller caller(callerIdName, callerIdNumber, callerDialed, url);
+    m_callersHash.insert(callId, caller);
+
+    emit channelCreated(callId, caller);
+}
+
+void WebSocketManager::processChannelAnswer(const QJsonObject &args)
+{
+    QString callDirection = args.value("Call-Direction").toString();
+
+    if (callDirection != "outbound")
+        return;
+
+    QString callId = args.value("Call-ID").toString();
+    QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
+    if (!m_callIdAndOtherLegHash.contains(callId))
+    {
+        QString calleeNumber = args.value("Callee-ID-Number").toString();
+        QString calleeName = args.value("Callee-ID-Name").toString();
+        emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
+        return;
+    }
+
+    QString otherLegCallIdFromCreate = m_callIdAndOtherLegHash.value(callId);
+    m_callIdAndOtherLegHash.remove(callId);
+    if (otherLegCallIdFromCreate != otherLegCallId)
+    {
+        QString calleeNumber = args.value("Callee-ID-Number").toString();
+        QString calleeName = args.value("Callee-ID-Name").toString();
+        emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
+    }
+    else
+    {
+        emit channelAnswered(otherLegCallId);
+    }
+}
+
+void WebSocketManager::processChannelDestroy(const QJsonObject &args)
+{
+    QString callId = args.value("Call-ID").toString();
+    if (!m_callersHash.contains(callId))
+        return;
+
+    emit channelDestroyed(callId);
+    m_callersHash.remove(callId);
 }
 
 void WebSocketManager::handleConnectionError()

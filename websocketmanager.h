@@ -25,6 +25,9 @@ public slots:
 private:
     void retrieveAuthToken();
     void processWsData(const QString &data);
+    void processChannelCreate(const QJsonObject &args);
+    void processChannelAnswer(const QJsonObject &args);
+    void processChannelDestroy(const QJsonObject &args);
 
     QNetworkAccessManager *m_nam = nullptr;
     QWebSocket *m_webSocket = nullptr;

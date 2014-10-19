@@ -10,7 +10,7 @@ static const char * const kAuthUrl = "http://api.sandbox.2600hz.com:8000/v1/user
 static const char * const kEventUrl = "http://api.sandbox.2600hz.com:5555";
 static const char * const kInfoUrl = "http://localhost/kazoo_popup.php?caller_number={{Caller-ID-Number}}";
 static const int kPopupTimeout = 10;
-static const bool kAutoOpenUrl = false;
+static const int kOpenUrl = 1;
 static const bool kRunAtStartup = true;
 
 static const char * const kRegistryKeyRun = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";

@@ -21,6 +21,13 @@
 #   include <QProcess>
 #endif
 
+enum OpenUrl
+{
+    kOpenUrlOff,
+    kOpenUrlCreateChannel,
+    kOpenUrlAnswerChannel
+};
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -104,7 +111,7 @@ void MainWindow::onChannelCreated(const QString &callId, const Caller &caller)
 
     m_informerDialogsHash.insert(callId, informerDialog);
 
-    if (ui->autoOpenUrlCheckBox->isChecked())
+    if (ui->openUrlComboBox->currentIndex() == kOpenUrlCreateChannel)
         QDesktopServices::openUrl(QUrl(caller.callerUrl()));
 }
 
@@ -122,6 +129,9 @@ void MainWindow::onChannelAnswered(const QString &callId)
         QTimer *timer = m_timersHash.value(callId);
         timer->start();
     }
+
+    if (ui->openUrlComboBox->currentIndex() == kOpenUrlAnswerChannel)
+        informerDialog->openCallerUrl();
 }
 
 void MainWindow::onChannelAnsweredAnother(const QString &callId,
@@ -279,7 +289,7 @@ void MainWindow::saveSettings()
     settings.setValue("event_url", ui->eventUrlLineEdit->text());
     settings.setValue("info_url", ui->infoUrlLineEdit->text());
     settings.setValue("popup_timeout", ui->popupTimeoutSpinBox->value());
-    settings.setValue("auto_open_url", ui->autoOpenUrlCheckBox->isChecked());
+    settings.setValue("open_url", ui->openUrlComboBox->currentIndex());
     settings.setValue("run_at_startup", ui->runAtStartupCheckBox->isChecked());
 
     if (ui->runAtStartupCheckBox->isChecked())
@@ -301,7 +311,7 @@ void MainWindow::loadSettings()
     ui->eventUrlLineEdit->setText(settings.value("event_url", kEventUrl).toString());
     ui->infoUrlLineEdit->setText(settings.value("info_url", kInfoUrl).toString());
     ui->popupTimeoutSpinBox->setValue(settings.value("popup_timeout", kPopupTimeout).toInt());
-    ui->autoOpenUrlCheckBox->setChecked(settings.value("auto_open_url", kAutoOpenUrl).toBool());
+    ui->openUrlComboBox->setCurrentIndex(settings.value("open_url", kOpenUrl).toInt());
     ui->runAtStartupCheckBox->setChecked(settings.value("run_at_startup", kRunAtStartup).toBool());
 
     if (ui->runAtStartupCheckBox->isChecked())
