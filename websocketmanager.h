@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QHash>
+#include <QStringList>
 
 class QNetworkAccessManager;
 class QWebSocket;
@@ -29,17 +30,19 @@ private:
     void processChannelAnswer(const QJsonObject &args);
     void processChannelDestroy(const QJsonObject &args);
 
+    bool isSupportCallDirection(const QString &callDirection);
+
     QNetworkAccessManager *m_nam = nullptr;
     QWebSocket *m_webSocket = nullptr;
-    QTimer *m_timer;
+    QTimer *m_timer = nullptr;
     QSettings *m_settings = nullptr;
     qint64 m_lastPing = 0;
 
     QString m_authToken;
     QString m_accountId;
+    QStringList m_devices;
 
     QHash<QString, Caller> m_callersHash;
-    QHash<QString, QString> m_callIdAndOtherLegHash;
 
 signals:
     void channelCreated(const QString &callId, const Caller &caller);
@@ -52,11 +55,12 @@ signals:
 
 private slots:
     void retrieveAuthTokenFinished();
+    void retrieveDevicesFinished();
     void retrieveWsAddressFinished();
 
     void webSocketConnected();
     void webSocketDisconnected();
-    void webSocketTextMessageReceived(const QString &message);
+    void webSocketTextFrameReceived(const QString &frame);
 
     void checkPingTimeout();
     void handleConnectionError();

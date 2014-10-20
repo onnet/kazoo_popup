@@ -286,9 +286,11 @@ void MainWindow::saveSettings()
     settings.setValue("password", ui->passwordLineEdit->text());
     settings.setValue("realm", ui->realmLineEdit->text());
     settings.setValue("auth_url", ui->authUrlLineEdit->text());
+    settings.setValue("crossbar_url", ui->crossbarUrlLineEdit->text());
     settings.setValue("event_url", ui->eventUrlLineEdit->text());
     settings.setValue("info_url", ui->infoUrlLineEdit->text());
     settings.setValue("popup_timeout", ui->popupTimeoutSpinBox->value());
+    settings.setValue("call_direction", ui->callDirectionComboBox->currentIndex());
     settings.setValue("open_url", ui->openUrlComboBox->currentIndex());
     settings.setValue("run_at_startup", ui->runAtStartupCheckBox->isChecked());
 
@@ -308,9 +310,11 @@ void MainWindow::loadSettings()
     ui->passwordLineEdit->setText(settings.value("password", kPassword).toString());
     ui->realmLineEdit->setText(settings.value("realm", kRealm).toString());
     ui->authUrlLineEdit->setText(settings.value("auth_url", kAuthUrl).toString());
+    ui->crossbarUrlLineEdit->setText(settings.value("crossbar_url", kCrossbarUrl).toString());
     ui->eventUrlLineEdit->setText(settings.value("event_url", kEventUrl).toString());
     ui->infoUrlLineEdit->setText(settings.value("info_url", kInfoUrl).toString());
     ui->popupTimeoutSpinBox->setValue(settings.value("popup_timeout", kPopupTimeout).toInt());
+    ui->callDirectionComboBox->setCurrentIndex(settings.value("call_direction", kCallDirection).toInt());
     ui->openUrlComboBox->setCurrentIndex(settings.value("open_url", kOpenUrl).toInt());
     ui->runAtStartupCheckBox->setChecked(settings.value("run_at_startup", kRunAtStartup).toBool());
 

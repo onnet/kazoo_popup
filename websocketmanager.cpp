@@ -11,6 +11,7 @@
 
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 
 #include <QSettings>
 
@@ -18,9 +19,18 @@
 
 static const char * const kRetrieveWsPath = "/socket.io/1/";
 static const char * const kWsPath = "/socket.io/1/websocket/";
+static const char * const kAuthPath = "/v1/user_auth";
+static const char * const kCrossbarPath = "/v1/user_auth/accounts/%1/devices?filter_owner_id=%2";
+static const char * const kWsScheme = "ws";
 
 static const int kCheckPingTimeout = 30000;
 static const int kPermittedPingTimeout = 15000;
+
+enum CallDirection
+{
+    kCallDirectionInbound,
+    kCallDirectionOutbound
+};
 
 WebSocketManager::WebSocketManager(QObject *parent) :
     QObject(parent)
@@ -97,7 +107,9 @@ void WebSocketManager::retrieveAuthToken()
 
     QNetworkRequest req;
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    req.setUrl(QUrl(m_settings->value("auth_url", kAuthUrl).toString()));
+    QString authUrl(m_settings->value("auth_url", kAuthUrl).toString());
+    authUrl.append(kAuthPath);
+    req.setUrl(QUrl(authUrl));
     QNetworkReply *reply = m_nam->put(req, json);
     connect(reply, &QNetworkReply::finished,
             this, &WebSocketManager::retrieveAuthTokenFinished);
@@ -128,6 +140,45 @@ void WebSocketManager::retrieveAuthTokenFinished()
     m_authToken = jsonDocument.object().value("auth_token").toString();
     QJsonObject dataObject = jsonDocument.object().value("data").toObject();
     m_accountId = dataObject.value("account_id").toString();
+
+    QString ownerId = dataObject.value("owner_id").toString();
+
+    QNetworkRequest crossbarReq;
+    crossbarReq.setRawHeader("X-Auth-Token", m_authToken.toLatin1());
+    QString crossbarUrl(m_settings->value("crossbar_url", kCrossbarUrl).toString());
+    crossbarUrl.append(QString(kCrossbarPath).arg(m_accountId, ownerId));
+    crossbarReq.setUrl(QUrl(crossbarUrl));
+    QNetworkReply *crossbarReply = m_nam->get(crossbarReq);
+    connect(crossbarReply, &QNetworkReply::finished,
+            this, &WebSocketManager::retrieveDevicesFinished);
+    connect(crossbarReply, SIGNAL(error(QNetworkReply::NetworkError)),
+            this, SLOT(handleConnectionError()));
+}
+
+void WebSocketManager::retrieveDevicesFinished()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        reply->deleteLater();
+        return;
+    }
+
+    QByteArray data = reply->readAll();
+    reply->deleteLater();
+
+    QJsonParseError err;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &err);
+    if (err.error != QJsonParseError::NoError)
+    {
+        handleConnectionError();
+        return;
+    }
+
+    QJsonArray devices = jsonDocument.object().value("data").toArray();
+    for (int i = 0; i < devices.count(); ++i)
+        m_devices.append(devices.at(i).toObject().value("id").toString());
+
     QNetworkRequest req;
     req.setRawHeader("X-Auth-Token", m_authToken.toLatin1());
     QString url(m_settings->value("event_url", kEventUrl).toString());
@@ -155,7 +206,7 @@ void WebSocketManager::retrieveWsAddressFinished()
     QByteArray webSocketPath = data.mid(0, data.indexOf(":"));
 
     QUrl wsUrl(m_settings->value("event_url", kEventUrl).toUrl());
-    wsUrl.setScheme("ws");
+    wsUrl.setScheme(kWsScheme);
     QString path(kWsPath);
     path.append(webSocketPath);
     wsUrl.setPath(path);
@@ -174,8 +225,8 @@ void WebSocketManager::retrieveWsAddressFinished()
 void WebSocketManager::webSocketConnected()
 {
     qDebug("WebSocket connected");
-    connect(m_webSocket, &QWebSocket::textMessageReceived,
-            this, &WebSocketManager::webSocketTextMessageReceived);
+    connect(m_webSocket, &QWebSocket::textFrameReceived,
+            this, &WebSocketManager::webSocketTextFrameReceived);
 
     QString subscribe("5:::{\"name\":\"subscribe\",\"args\":[{\"account_id\":\"%1\",\"auth_token\":\"%2\",\"binding\":\"call.CHANNEL_CREATE.*\"}]}");
     m_webSocket->sendTextMessage(subscribe.arg(m_accountId, m_authToken));
@@ -194,18 +245,18 @@ void WebSocketManager::webSocketDisconnected()
     qDebug("WebSocket disconnected");
 }
 
-void WebSocketManager::webSocketTextMessageReceived(const QString &message)
+void WebSocketManager::webSocketTextFrameReceived(const QString &frame)
 {
-    if (message.startsWith("2"))
+    if (frame.startsWith("2"))
     {
         m_lastPing = QDateTime::currentMSecsSinceEpoch();
         return;
     }
 
-    if (!message.startsWith("5"))
+    if (!frame.startsWith("5"))
         return;
 
-    QString data = message.mid(4);
+    QString data = frame.mid(4);
 
     processWsData(data);
 }
@@ -234,17 +285,33 @@ void WebSocketManager::processWsData(const QString &data)
     }
 }
 
+bool WebSocketManager::isSupportCallDirection(const QString &callDirection)
+{
+    int direction = m_settings->value("call_direction", kCallDirection).toInt();
+
+    if (direction == kCallDirectionInbound && callDirection != "inbound")
+        return false;
+
+    if (direction == kCallDirectionOutbound && callDirection != "outbound")
+        return false;
+
+    return true;
+}
+
 void WebSocketManager::processChannelCreate(const QJsonObject &args)
 {
+    QJsonObject customChannelVars = args.value("Custom-Channel-Vars").toObject();
+    QString authorizingId = customChannelVars.value("Authorizing-ID").toString();
+
+    if (!m_devices.contains(authorizingId))
+        return;
+
     QString callDirection = args.value("Call-Direction").toString();
 
-    QString callId = args.value("Call-ID").toString();
-    if (callDirection == "outbound")
-    {
-        QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
-        m_callIdAndOtherLegHash.insert(callId, otherLegCallId);
+    if (!isSupportCallDirection(callDirection))
         return;
-    }
+
+    QString callId = args.value("Call-ID").toString();
 
     if (m_callersHash.contains(callId))
         return;
@@ -277,28 +344,9 @@ void WebSocketManager::processChannelAnswer(const QJsonObject &args)
     if (callDirection != "outbound")
         return;
 
-    QString callId = args.value("Call-ID").toString();
     QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
-    if (!m_callIdAndOtherLegHash.contains(callId))
-    {
-        QString calleeNumber = args.value("Callee-ID-Number").toString();
-        QString calleeName = args.value("Callee-ID-Name").toString();
-        emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
-        return;
-    }
 
-    QString otherLegCallIdFromCreate = m_callIdAndOtherLegHash.value(callId);
-    m_callIdAndOtherLegHash.remove(callId);
-    if (otherLegCallIdFromCreate != otherLegCallId)
-    {
-        QString calleeNumber = args.value("Callee-ID-Number").toString();
-        QString calleeName = args.value("Callee-ID-Name").toString();
-        emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
-    }
-    else
-    {
-        emit channelAnswered(otherLegCallId);
-    }
+    emit channelAnswered(otherLegCallId);
 }
 
 void WebSocketManager::processChannelDestroy(const QJsonObject &args)
