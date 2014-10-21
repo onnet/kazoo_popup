@@ -50,6 +50,7 @@ Section Install
   SetShellVarContext all
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
+  File /oname=$LOCALAPPDATA\${PRODUCT_NAME}\settings.ini "settings.ini"
   File "${PRODUCT_NAME}.exe"
   File "Qt5Core.dll"
   File "Qt5Gui.dll"
@@ -123,7 +124,7 @@ Section Uninstall
   Delete "$INSTDIR\icuuc52.dll"
   Delete "$INSTDIR\readme.txt"
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
-  Delete "$INSTDIR\settings.ini"
+  Delete "$LOCALAPPDATA\${PRODUCT_NAME}\settings.ini"
   Delete "$INSTDIR\platforms\qminimal.dll"
   Delete "$INSTDIR\platforms\qwindows.dll"
   RMDir "$INSTDIR\translations"
