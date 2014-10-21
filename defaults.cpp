@@ -17,6 +17,6 @@ QString dataDirPath()
 
     return appDirPath;
 #elif defined Q_OS_MAC
-
+    return qApp->applicationDirPath();
 #endif
 }
