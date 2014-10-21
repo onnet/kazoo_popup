@@ -28,6 +28,7 @@ public:
 
     void setState(State state);
 
+    bool isAnsweredAnother() const;
     bool isAttached() const;
 
     void setCaller(const Caller &caller);

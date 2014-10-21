@@ -171,6 +171,13 @@ void MainWindow::timeout()
     if (informerDialog->isVisible())
         informerDialog->close();
 
+    if (informerDialog->isAnsweredAnother())
+    {
+        m_timersHash.remove(callId);
+        timer->stop();
+        timer->deleteLater();
+    }
+
     m_informerDialogsHash.remove(callId);
     informerDialog->deleteLater();
 }
@@ -181,19 +188,22 @@ void MainWindow::onChannelDestroyed(const QString &callId)
         return;
 
     InformerDialog *informerDialog = m_informerDialogsHash.value(callId);
+    if (informerDialog->isVisible() && informerDialog->isAnsweredAnother())
+        return;
+
     if (informerDialog->isVisible() && !informerDialog->isAttached())
         informerDialog->close();
 
     m_informerDialogsHash.remove(callId);
     informerDialog->deleteLater();
 
-    if (m_timersHash.contains(callId))
-    {
-        QTimer *timer = m_timersHash.value(callId);
-        m_timersHash.remove(callId);
-        timer->stop();
-        timer->deleteLater();
-    }
+    if (!m_timersHash.contains(callId))
+        return;
+
+    QTimer *timer = m_timersHash.value(callId);
+    m_timersHash.remove(callId);
+    timer->stop();
+    timer->deleteLater();
 }
 
 bool MainWindow::isCorrectSettings() const

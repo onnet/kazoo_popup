@@ -6,6 +6,12 @@
 #include <QMouseEvent>
 
 #include <QDesktopServices>
+#include <QDesktopWidget>
+
+static const char * const kStyleSheetRinging = "QDialog {\nbackground-color: #FFFFBF;\n}";
+static const char * const kStyleSheetAnswered = "QDialog {\nbackground-color: #63C248;\n}";
+static const char * const kStyleSheetAnsweredAnother = "QDialog {\nbackground-color: #FFBA66;\n}";
+static const char * const kStyleSheetAttached = "QDialog {\nbackground-color: #BFDFFF;\n}";
 
 InformerDialog::InformerDialog(QWidget *parent) :
     QDialog(parent),
@@ -40,25 +46,35 @@ void InformerDialog::setCallee(const QString &calleeNumber, const QString &calle
     text.append("\nCallee number: " + calleeNumber + "\nCallee name: " + calleeName);
     ui->informationLabel->setText(text);
     adjustSize();
+    QRect rect = qApp->desktop()->availableGeometry();
+    setGeometry(rect.width() - width(),
+                rect.height() - height(),
+                width(),
+                height());
 }
 
 void InformerDialog::setState(State state)
 {
     if (state == kStateAnswered)
     {
-        setStyleSheet("QDialog {\nbackground-color: #63C248;\n}");
+        setStyleSheet(kStyleSheetAnswered);
         ui->stateLabel->setText(tr("State: Answered"));
     }
     else if (state == kStateAnsweredAnother)
     {
-        setStyleSheet("QDialog {\nbackground-color: #FFBA66;\n}");
+        setStyleSheet(kStyleSheetAnsweredAnother);
         ui->stateLabel->setText(tr("State: Answered by another user"));
     }
     else if (state == kStateRinging)
     {
-        setStyleSheet("QDialog {\nbackground-color: #FFFFBF;\n}");
+        setStyleSheet(kStyleSheetRinging);
         ui->stateLabel->setText(tr("State: Ringing"));
     }
+}
+
+bool InformerDialog::isAnsweredAnother() const
+{
+    return styleSheet() == kStyleSheetAnsweredAnother;
 }
 
 void InformerDialog::mousePressEvent(QMouseEvent *event)
@@ -105,7 +121,7 @@ void InformerDialog::processAttach(bool checked)
     emit dialogAttached(checked);
     if (checked)
     {
-        setStyleSheet("QDialog {\nbackground-color: #BFDFFF;\n}");
+        setStyleSheet(kStyleSheetAttached);
         ui->stateLabel->setText(tr("State: Attached"));
     }
     else

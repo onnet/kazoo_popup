@@ -129,9 +129,9 @@ void WebSocketManager::retrieveAuthTokenFinished()
     QByteArray data = reply->readAll();
     reply->deleteLater();
 
-    QJsonParseError err;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &err);
-    if (err.error != QJsonParseError::NoError)
+    QJsonParseError error;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &error);
+    if (error.error != QJsonParseError::NoError)
     {
         handleConnectionError();
         return;
@@ -167,9 +167,9 @@ void WebSocketManager::retrieveDevicesFinished()
     QByteArray data = reply->readAll();
     reply->deleteLater();
 
-    QJsonParseError err;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &err);
-    if (err.error != QJsonParseError::NoError)
+    QJsonParseError error;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &error);
+    if (error.error != QJsonParseError::NoError)
     {
         handleConnectionError();
         return;
@@ -311,9 +311,9 @@ void WebSocketManager::processChannelCreate(const QJsonObject &args)
     if (!isSupportCallDirection(callDirection))
         return;
 
-    QString callId = args.value("Call-ID").toString();
+    QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
 
-    if (m_callersHash.contains(callId))
+    if (m_callersHash.contains(otherLegCallId))
         return;
 
     QString callerIdName = args.value("Caller-ID-Name").toString();
@@ -332,9 +332,9 @@ void WebSocketManager::processChannelCreate(const QJsonObject &args)
     }
 
     Caller caller(callerIdName, callerIdNumber, callerDialed, url);
-    m_callersHash.insert(callId, caller);
+    m_callersHash.insert(otherLegCallId, caller);
 
-    emit channelCreated(callId, caller);
+    emit channelCreated(otherLegCallId, caller);
 }
 
 void WebSocketManager::processChannelAnswer(const QJsonObject &args)
@@ -344,19 +344,36 @@ void WebSocketManager::processChannelAnswer(const QJsonObject &args)
     if (callDirection != "outbound")
         return;
 
-    QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
+    QJsonObject customChannelVars = args.value("Custom-Channel-Vars").toObject();
+    QString authorizingId = customChannelVars.value("Authorizing-ID").toString();
 
-    emit channelAnswered(otherLegCallId);
+    QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
+    if (m_devices.contains(authorizingId))
+    {
+        emit channelAnswered(otherLegCallId);
+    }
+    else
+    {
+        QString calleeNumber = args.value("Callee-ID-Number").toString();
+        QString calleeName = args.value("Callee-ID-Name").toString();
+        emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
+    }
 }
 
 void WebSocketManager::processChannelDestroy(const QJsonObject &args)
 {
-    QString callId = args.value("Call-ID").toString();
-    if (!m_callersHash.contains(callId))
+    QJsonObject customChannelVars = args.value("Custom-Channel-Vars").toObject();
+    QString authorizingId = customChannelVars.value("Authorizing-ID").toString();
+
+    if (!m_devices.contains(authorizingId))
         return;
 
-    emit channelDestroyed(callId);
-    m_callersHash.remove(callId);
+    QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
+    if (!m_callersHash.contains(otherLegCallId))
+        return;
+
+    emit channelDestroyed(otherLegCallId);
+    m_callersHash.remove(otherLegCallId);
 }
 
 void WebSocketManager::handleConnectionError()
