@@ -54,9 +54,7 @@ macx {
     deploy.depends  += all
     deploy.commands += macdeployqt $${TARGET}.app;
 
-    # Remove unneeded frameworks
-    deploy.commands += rm -r $${TARGET}.app/Contents/Frameworks/QtPrintSupport.framework;
-    #deploy.commands += rm -r $${TARGET}.app/Contents/Frameworks/QtSql.framework;
+    deploy.commands += cp $${PWD}/setup/settings.ini $${TARGET}.app/Contents/MacOS/settings.ini;
 
     # Remove unneeded plugins
     deploy.commands += rm -r $${TARGET}.app/Contents/PlugIns/printsupport;
@@ -66,7 +64,7 @@ macx {
     #product.depends += all
     #product.commands += pkgbuild --identifier 2600hz --version 1.0 --root KazooPopup.app --install-location ~/Applications/KazooPopup.app KazooPopup.pkg;
 
-    deploy.commands += sh $${PWD}/res/mac/make_dmg.sh -V -i $${PWD}/$${ICON} -s "400:300" "$${TARGET}.app";
+    deploy.commands += sh $${PWD}/res/mac/make_dmg.sh -V -i $${PWD}/$${ICON} -s "400:300" -c "300:50:100:50" "$${TARGET}.app";
 
     QMAKE_EXTRA_TARGETS += deploy
 }
