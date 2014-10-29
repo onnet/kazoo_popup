@@ -17,8 +17,8 @@ KazooPopup - How to build
 
 			2) qmake KazooPopup.pro
 
-			3) mingw32-make -jN[^1] release
-
+			3) mingw32-make -jN* release
+				* N in -jN is the number of CPU cores on your system
 * Mac OS
 	
             1) Set Qt environment: export PATH=$QT_DIR/bin:$PATH
@@ -26,8 +26,8 @@ KazooPopup - How to build
 
 			2) qmake KazooPopup.pro
 			
-			3) make -jN[^1]
+			3) make -jN*
+				* N in -jN is the number of CPU cores on your system
             
             4) make deploy
             
-[^1]: N in -jN is the number of CPU cores on your system
