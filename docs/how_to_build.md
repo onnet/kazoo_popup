@@ -40,7 +40,7 @@ Just open `KazooPopup.pro` file and press 'Build'.
             cd KazooPopup
             pushd .
             ; Set Qt environment
-            call $$QT_DIR\bin\qtenv2.bat (e.g. c:\Qt\Qt5.3.1\5.3\mingw482_32\bin\qtenv2.bat)
+            call $$QT_DIR\bin\qtenv2.bat ;(e.g. c:\Qt\Qt5.3.1\5.3\mingw482_32\bin\qtenv2.bat)
             
             popd
             
@@ -51,7 +51,7 @@ Just open `KazooPopup.pro` file and press 'Build'.
             
             qmake ..\KazooPopup.pro
             
-            mingw32-make -jN* release (e.g. mingw32-make -j4 release)
+            mingw32-make -jN* release ;(e.g. mingw32-make -j4 release)
             
             copy /y release\KazooPopup.exe setup
 
@@ -66,7 +66,7 @@ Just open `KazooPopup.pro` file and press 'Build'.
             cd KazooPopup
             pushd .
             # Set Qt environment
-            export PATH=$QT_DIR/bin:$PATH (e.g. export PATH=/Users/Alex/Qt5.3.0/5.3/clang_64/bin:$PATH)
+            export PATH=$QT_DIR/bin:$PATH #(e.g. export PATH=/Users/Alex/Qt5.3.0/5.3/clang_64/bin:$PATH)
             
             popd
             
@@ -77,7 +77,7 @@ Just open `KazooPopup.pro` file and press 'Build'.
             
             qmake ../KazooPopup.pro
             
-            make -jN* (e.g. make -j4)
+            make -jN* #(e.g. make -j4)
             
             make deploy
             
