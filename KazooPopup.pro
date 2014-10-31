@@ -21,18 +21,23 @@ SOURCES += \
     websocketmanager.cpp \
     informerdialog.cpp \
     caller.cpp \
-    defaults.cpp
+    defaults.cpp \
+    debugdialog.cpp \
+    logger.cpp
 
 HEADERS  += \
     mainwindow.h \
     websocketmanager.h \
     defaults.h \
     informerdialog.h \
-    caller.h
+    caller.h \
+    debugdialog.h \
+    logger.h
 
 FORMS    += \
     mainwindow.ui \
-    informerdialog.ui
+    informerdialog.ui \
+    debugdialog.ui
 
 RESOURCES += \
     app.qrc

@@ -18,5 +18,6 @@ static const bool kRunAtStartup = true;
 static const char * const kRegistryKeyRun = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
 
 QString dataDirPath();
+QString logsDirPath();
 
 #endif // DEFAULTS_H

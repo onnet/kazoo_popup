@@ -6,6 +6,7 @@
 #include "caller.h"
 #include "informerdialog.h"
 #include "websocketmanager.h"
+#include "debugdialog.h"
 
 #include <QSystemTrayIcon>
 #include <QMenu>
@@ -38,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent) :
     createTrayIcon();
 
     loadSettings();
+
+    qDebug("KazooPopup was started");
 
     m_wsMan = new WebSocketManager(this);
     connect(m_wsMan, &WebSocketManager::channelCreated,
@@ -76,6 +79,7 @@ void MainWindow::createTrayIcon()
     stateAction->setDisabled(true);
     menu->addSeparator();
     menu->addAction(tr("Settings"), this, SLOT(show()));
+    menu->addAction(tr("Debug logs"), this, SLOT(showDebugDialog()));
     menu->addAction(tr("Close all popups"), this, SLOT(closeAllPopups()));
     menu->addSeparator();
     menu->addAction(tr("Quit"), this, SLOT(quit()));
@@ -364,6 +368,22 @@ void MainWindow::processDialogAttached(bool attached)
         QString callId = m_attachedDialogsHash.key(informerDialog);
         m_attachedDialogsHash.remove(callId);
         m_informerDialogsHash.insert(callId, informerDialog);
+    }
+}
+
+void MainWindow::showDebugDialog()
+{
+    if (m_debugDialog == nullptr)
+        m_debugDialog = new DebugDialog(this);
+
+    if (m_debugDialog->isVisible())
+    {
+        m_debugDialog->activateWindow();
+        m_debugDialog->raise();
+    }
+    else
+    {
+        m_debugDialog->show();
     }
 }
 

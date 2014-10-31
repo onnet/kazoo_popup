@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 
+#include "logger.h"
+
 #include <QtSingleApplication>
 
 int main(int argc, char *argv[])
@@ -10,6 +12,8 @@ int main(int argc, char *argv[])
         return 0;
 
     a.setQuitOnLastWindowClosed(false);
+
+    Logger::instance()->start();
 
     MainWindow w;
     w.hide();

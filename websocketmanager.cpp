@@ -133,6 +133,9 @@ void WebSocketManager::retrieveAuthTokenFinished()
     QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &error);
     if (error.error != QJsonParseError::NoError)
     {
+        qWarning("Cannot parse retrieve auth token data: %s",
+                 error.errorString().toLatin1().data());
+        qDebug("Retrieve auth token data: %s", data.data());
         handleConnectionError();
         return;
     }
@@ -171,6 +174,9 @@ void WebSocketManager::retrieveDevicesFinished()
     QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &error);
     if (error.error != QJsonParseError::NoError)
     {
+        qWarning("Cannot parse retrieve device data: %s",
+                 error.errorString().toLatin1().data());
+        qDebug("Retrieve device data: %s", data.data());
         handleConnectionError();
         return;
     }
@@ -228,13 +234,19 @@ void WebSocketManager::webSocketConnected()
     connect(m_webSocket, &QWebSocket::textFrameReceived,
             this, &WebSocketManager::webSocketTextFrameReceived);
 
-    QString subscribe("5:::{\"name\":\"subscribe\",\"args\":[{\"account_id\":\"%1\",\"auth_token\":\"%2\",\"binding\":\"call.CHANNEL_CREATE.*\"}]}");
+    QString subscribe("5:::{\"name\":\"subscribe\",\"args\":"
+                      "[{\"account_id\":\"%1\",\"auth_token\""
+                      ":\"%2\",\"binding\":\"call.CHANNEL_CREATE.*\"}]}");
     m_webSocket->sendTextMessage(subscribe.arg(m_accountId, m_authToken));
 
-    subscribe = QString("5:::{\"name\":\"subscribe\",\"args\":[{\"account_id\":\"%1\",\"auth_token\":\"%2\",\"binding\":\"call.CHANNEL_ANSWER.*\"}]}");
+    subscribe = QString("5:::{\"name\":\"subscribe\",\"args\":"
+                        "[{\"account_id\":\"%1\",\"auth_token\""
+                        ":\"%2\",\"binding\":\"call.CHANNEL_ANSWER.*\"}]}");
     m_webSocket->sendTextMessage(subscribe.arg(m_accountId, m_authToken));
 
-    subscribe = QString("5:::{\"name\":\"subscribe\",\"args\":[{\"account_id\":\"%1\",\"auth_token\":\"%2\",\"binding\":\"call.CHANNEL_DESTROY.*\"}]}");
+    subscribe = QString("5:::{\"name\":\"subscribe\",\"args\":"
+                        "[{\"account_id\":\"%1\",\"auth_token\""
+                        ":\"%2\",\"binding\":\"call.CHANNEL_DESTROY.*\"}]}");
     m_webSocket->sendTextMessage(subscribe.arg(m_accountId, m_authToken));
 
     emit connected();
@@ -267,7 +279,12 @@ void WebSocketManager::processWsData(const QString &data)
     QJsonDocument jsonDocument = QJsonDocument::fromJson(data.toLatin1(), &error);
 
     if (error.error != QJsonParseError::NoError)
+    {
+        qWarning("Cannot parse data from websocket: %s",
+                 error.errorString().toLatin1().data());
+        qDebug("WebSocket data: %s", data.toLatin1().data());
         return;
+    }
 
     QString eventName = jsonDocument.object().value("name").toString();
     QJsonObject args = jsonDocument.object().value("args").toObject();
@@ -334,6 +351,7 @@ void WebSocketManager::processChannelCreate(const QJsonObject &args)
     Caller caller(callerIdName, callerIdNumber, callerDialed, url);
     m_callersHash.insert(otherLegCallId, caller);
 
+    qDebug("Channel created");
     emit channelCreated(otherLegCallId, caller);
 }
 
@@ -350,12 +368,14 @@ void WebSocketManager::processChannelAnswer(const QJsonObject &args)
     QString otherLegCallId = args.value("Other-Leg-Call-ID").toString();
     if (m_devices.contains(authorizingId))
     {
+        qDebug("Channel answered");
         emit channelAnswered(otherLegCallId);
     }
     else
     {
         QString calleeNumber = args.value("Callee-ID-Number").toString();
         QString calleeName = args.value("Callee-ID-Name").toString();
+        qDebug("Channel answered by another");
         emit channelAnsweredAnother(otherLegCallId, calleeNumber, calleeName);
     }
 }
@@ -372,13 +392,16 @@ void WebSocketManager::processChannelDestroy(const QJsonObject &args)
     if (!m_callersHash.contains(otherLegCallId))
         return;
 
+    qDebug("Channel destroyed");
     emit channelDestroyed(otherLegCallId);
     m_callersHash.remove(otherLegCallId);
 }
 
 void WebSocketManager::handleConnectionError()
 {
-    qDebug("WebSocket connection error");
+    qWarning("WebSocket connection error");
+    qDebug("WebSocket error: %s",
+           m_webSocket->errorString().toLatin1().data());
     stop();
     emit connectionError();
 }

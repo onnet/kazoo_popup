@@ -5,6 +5,8 @@
 #include <QApplication>
 #include <QDir>
 
+static const char * const kLogsDirName = "logs";
+
 QString dataDirPath()
 {
 #ifdef Q_OS_WIN
@@ -19,4 +21,13 @@ QString dataDirPath()
 #elif defined Q_OS_MAC
     return qApp->applicationDirPath();
 #endif
+}
+
+QString logsDirPath()
+{
+    QString path = dataDirPath();
+    QDir dataDir(path);
+    if (!dataDir.exists(kLogsDirName))
+        dataDir.mkdir(kLogsDirName);
+    return QString("%1/%2/").arg(path, kLogsDirName);
 }

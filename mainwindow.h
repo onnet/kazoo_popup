@@ -12,6 +12,7 @@ class QSystemTrayIcon;
 class WebSocketManager;
 class InformerDialog;
 class Caller;
+class DebugDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -34,6 +35,8 @@ private:
 
     WebSocketManager *m_wsMan;
 
+    DebugDialog *m_debugDialog = nullptr;
+
 private slots:
     void onChannelCreated(const QString &callId, const Caller &caller);
     void onChannelAnswered(const QString &callId);
@@ -50,6 +53,7 @@ private slots:
     void processDialogFinished();
     void processDialogAttached(bool attached);
 
+    void showDebugDialog();
     void closeAllPopups();
     void quit();
 };
