@@ -16,8 +16,6 @@
 
 #include <QDebug>
 
-static const char * const kDirFileTemplate = "%1/%2";
-
 static int kProgressDialogWidth = 280;
 static int kProgressDialogHeight = 100;
 
@@ -73,6 +71,8 @@ void AutoUpdater::installNewVersion()
             QMessageBox::warning(0,
                                  qApp->applicationName(),
                                  message.append(kContactEmail));
+
+            runUpdateAction("clean", mainAppDirPath);
             exit(0);
         }
     }
@@ -81,9 +81,7 @@ void AutoUpdater::installNewVersion()
     ignoreFiles.append(kBackupDirName);
     ignoreFiles.append(kIgnoreListFileName);
 
-    QString ignoreListPath(kDirFileTemplate);
-    ignoreListPath = ignoreListPath.arg(updatesDirPath, kIgnoreListFileName);
-
+    QString ignoreListPath = updatesDirPath + "/" + kIgnoreListFileName;
     QFile ignoreList(ignoreListPath);
     if (ignoreList.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -100,10 +98,7 @@ void AutoUpdater::installNewVersion()
         {
             runPostUpdateScript(updatesDirPath);
 
-            QStringList arguments("clean");
-            QString path(kDirFileTemplate);
-            path = path.arg(mainAppDirPath, kAutoUpdaterFileName);
-            runApp(path, arguments);
+            runUpdateAction("clean", mainAppDirPath);
         }
         else
         {
@@ -124,19 +119,14 @@ void AutoUpdater::installNewVersion()
                                      qApp->applicationName(),
                                      message.append(kContactEmail));
             }
-            QStringList arguments("clean");
-            QString path(kDirFileTemplate);
-            path = path.arg(mainAppDirPath, kAutoUpdaterFileName);
-            runApp(path, arguments);
+
+            runUpdateAction("clean", mainAppDirPath);
         }
     }
     else
     {
         qDebug() << "Cannot make backup, restore backup";
-        QStringList arguments("clean");
-        QString path(kDirFileTemplate);
-        path = path.arg(mainAppDirPath, kAutoUpdaterFileName);
-        runApp(path, arguments);
+        runUpdateAction("clean", mainAppDirPath);
     }
 
     exit(0);
@@ -174,25 +164,21 @@ void AutoUpdater::runPostUpdateScript(const QString &updatesDirPath)
 
 void AutoUpdater::clean()
 {
-    QString appPath(qApp->applicationDirPath());
-    const QString mainAppDirPath(appPath);
+    QDir appDir(qApp->applicationDirPath());
 
-    QString updatesDirPath(kDirFileTemplate);
-    updatesDirPath = updatesDirPath.arg(mainAppDirPath, kUpdatesDirName);
+    if (appDir.cd(kUpdatesDirName))
+    {
+        appDir.removeRecursively();
+        appDir.cdUp();
+    }
 
-    QDir updatesDir(updatesDirPath);
-    updatesDir.removeRecursively();
+    if (appDir.cd(kBackupDirName))
+    {
+        appDir.removeRecursively();
+        appDir.cdUp();
+    }
 
-    QString backupDirPath(kDirFileTemplate);
-    backupDirPath = backupDirPath.arg(mainAppDirPath, kBackupDirName);
-
-    QDir backupDir(backupDirPath);
-    backupDir.removeRecursively();
-
-    QString updateAppPath(kDirFileTemplate);
-    updateAppPath = updateAppPath.arg(mainAppDirPath, kUpdatedAppFileName);
-
-    runApp(updateAppPath);
+    runApp(appDir.absoluteFilePath(kUpdatedAppFileName));
     exit(0);
 }
 
@@ -253,12 +239,15 @@ void AutoUpdater::processDownloadError(const QString &error)
     {
         qDebug() << "quit without retry";
         // quit and run updated application
-        QString updateAppPath(kDirFileTemplate);
-        updateAppPath = updateAppPath.arg(qApp->applicationDirPath(),
-                                          kUpdatedAppFileName);
-        runApp(updateAppPath);
+        runUpdateAction("clean", qApp->applicationDirPath());
         qApp->quit();
     }
+}
+
+void AutoUpdater::runUpdateAction(const QString &updateAction, const QString &updaterDirPath)
+{
+    QStringList arguments(updateAction);
+    runApp(updaterDirPath + "/" + kAutoUpdaterFileName, arguments);
 }
 
 void AutoUpdater::runApp(const QString &app, const QStringList &args)

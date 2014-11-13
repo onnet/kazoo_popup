@@ -28,6 +28,7 @@ private slots:
 private:
     void createProgressDialog();
 
+    static void runUpdateAction(const QString &updateAction, const QString &updaterDirPath);
     static void runApp(const QString &app, const QStringList &args = QStringList());
     static void runPreUpdateScript(const QString &updatesDirPath);
     static void runPostUpdateScript(const QString &updatesDirPath);
