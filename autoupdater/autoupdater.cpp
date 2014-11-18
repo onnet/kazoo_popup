@@ -98,7 +98,7 @@ void AutoUpdater::installNewVersion()
         {
             runPostUpdateScript(updatesDirPath);
 
-            runUpdateAction("clean", mainAppDirPath);
+            runUpdateAction("clean", mainAppDirPath, true);
         }
         else
         {
@@ -126,6 +126,11 @@ void AutoUpdater::installNewVersion()
     else
     {
         qDebug() << "Cannot make backup, restore backup";
+        QString message = tr("Updating was failed: cannot make backup. "
+                             "Please contact us by email: ");
+        QMessageBox::warning(0,
+                             qApp->applicationName(),
+                             message.append(kContactEmail));
         runUpdateAction("clean", mainAppDirPath);
     }
 
@@ -244,8 +249,14 @@ void AutoUpdater::processDownloadError(const QString &error)
     }
 }
 
-void AutoUpdater::runUpdateAction(const QString &updateAction, const QString &updaterDirPath)
+void AutoUpdater::runUpdateAction(const QString &updateAction, const QString &updaterDirPath, bool ok)
 {
+    if (ok)
+    {
+        QMessageBox::information(0,
+                                 qApp->applicationName(),
+                                 tr("Kazoo Popup application is successfully updated"));
+    }
     QStringList arguments(updateAction);
     runApp(updaterDirPath + "/" + kAutoUpdaterFileName, arguments);
 }
