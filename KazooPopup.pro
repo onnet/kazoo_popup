@@ -15,6 +15,12 @@ TEMPLATE = app
 
 CONFIG += c++11
 
+# Application version
+VERSION_MAJOR=1
+VERSION_MINOR=0
+VERSION_PATCH=0
+DEFINES += APP_VERSION=\\\"$${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}\\\"
+
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
@@ -23,7 +29,8 @@ SOURCES += \
     caller.cpp \
     defaults.cpp \
     debugdialog.cpp \
-    logger.cpp
+    logger.cpp \
+    updatemanager.cpp
 
 HEADERS  += \
     mainwindow.h \
@@ -32,7 +39,8 @@ HEADERS  += \
     informerdialog.h \
     caller.h \
     debugdialog.h \
-    logger.h
+    logger.h \
+    updatemanager.h
 
 FORMS    += \
     mainwindow.ui \

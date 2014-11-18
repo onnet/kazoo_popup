@@ -31,3 +31,12 @@ QString logsDirPath()
         dataDir.mkdir(kLogsDirName);
     return QString("%1/%2/").arg(path, kLogsDirName);
 }
+
+QString detectPlatform()
+{
+#ifdef Q_OS_WIN
+    return "win";
+#elif defined Q_OS_MAC
+    return "mac";
+#endif
+}

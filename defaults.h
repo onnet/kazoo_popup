@@ -19,5 +19,6 @@ static const char * const kRegistryKeyRun = "HKCU\\Software\\Microsoft\\Windows\
 
 QString dataDirPath();
 QString logsDirPath();
+QString detectPlatform();
 
 #endif // DEFAULTS_H

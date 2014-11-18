@@ -1,6 +1,6 @@
 #include "mainwindow.h"
-
 #include "logger.h"
+#include "updatemanager.h"
 
 #include <QtSingleApplication>
 
@@ -12,8 +12,11 @@ int main(int argc, char *argv[])
         return 0;
 
     a.setQuitOnLastWindowClosed(false);
+    a.setApplicationVersion(APP_VERSION);
 
     Logger::instance()->start();
+
+    UpdateManager::instance()->start();
 
     MainWindow w;
     w.hide();

@@ -62,6 +62,8 @@ MainWindow::MainWindow(QWidget *parent) :
             this, &MainWindow::saveSettings);
 
     m_wsMan->start();
+
+    qDebug("app version: %s", APP_VERSION);
 }
 
 MainWindow::~MainWindow()
