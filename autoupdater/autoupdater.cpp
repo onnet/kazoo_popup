@@ -16,8 +16,13 @@
 
 #include <QDebug>
 
+#ifdef Q_OS_WIN
 static int kProgressDialogWidth = 280;
 static int kProgressDialogHeight = 100;
+#elif defined Q_OS_MAC
+static int kProgressDialogWidth = 400;
+static int kProgressDialogHeight = 100;
+#endif
 
 AutoUpdater::AutoUpdater(QObject *parent) :
     QObject(parent)
@@ -216,10 +221,9 @@ void AutoUpdater::processDownloadFinished(const QString &archiveFilePath)
 
 void AutoUpdater::processDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
-    if (m_progressDialog->maximum() != bytesTotal)
-        m_progressDialog->setMaximum(bytesTotal);
+    qint64 value = bytesReceived * 100 / bytesTotal;
 
-    m_progressDialog->setValue(bytesReceived);
+    m_progressDialog->setValue(value);
 }
 
 void AutoUpdater::processDownloadError(const QString &error)

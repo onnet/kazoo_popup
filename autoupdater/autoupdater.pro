@@ -33,15 +33,26 @@ HEADERS += \
 RESOURCES += \
     res.qrc
 
-#unix:!macx:!symbian {
-#    LIBS += -L/usr/local/lib/ -lquazip
-#    INCLUDEPATH += /usr/local/include/quazip
-#    DEPENDPATH += /usr/local/include/quazip
-#}
+LIBS += -L$$PWD/3rdparty/quazip/lib -lquazip
+INCLUDEPATH += $$PWD/3rdparty/quazip/include
 
 win32 {
-    LIBS += -L$$PWD/3rdparty/quazip/lib -lquazip
-    INCLUDEPATH += $$PWD/3rdparty/quazip/include
-
     RC_FILE += rc.rc
+}
+
+macx {
+    ICON = res/mac/kazoo.icns
+    QMAKE_INFO_PLIST = res/mac/MyAppInfo.plist
+
+    OTHER_FILES += res/mac/MyAppInfo.plist
+
+    deploy.depends  += all
+    deploy.commands += macdeployqt $${TARGET}.app;
+
+    deploy.commands += cp $${PWD}/3rdparty/quazip/lib/libquazip.1.dylib $${TARGET}.app/Contents/Frameworks/libquazip.1.dylib;
+
+    # Remove unneeded plugins
+    deploy.commands += rm -r $${TARGET}.app/Contents/PlugIns/printsupport;
+
+    QMAKE_EXTRA_TARGETS += deploy
 }
