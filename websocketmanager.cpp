@@ -93,6 +93,7 @@ void WebSocketManager::stop()
 void WebSocketManager::retrieveAuthToken()
 {
     QByteArray hashTemplate(m_settings->value("login", kLogin).toByteArray());
+    qDebug("Login: %s", hashTemplate.data());
     hashTemplate.append(":");
     hashTemplate.append(m_settings->value("password", kPassword).toString());
 
@@ -101,6 +102,7 @@ void WebSocketManager::retrieveAuthToken()
     QJsonObject jsonData;
     jsonData["credentials"] = hash.data();
     jsonData["realm"] = m_settings->value("realm", kRealm).toString();
+    qDebug("Realm: %s", jsonData["realm"].toString().toLatin1().data());
     jsonObject["data"] = jsonData;
     QJsonDocument jsonDocument(jsonObject);
     QByteArray json = jsonDocument.toJson();
@@ -109,6 +111,7 @@ void WebSocketManager::retrieveAuthToken()
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QString authUrl(m_settings->value("auth_url", kAuthUrl).toString());
     authUrl.append(kAuthPath);
+    qDebug("Auth url: %s", authUrl.toLatin1().data());
     req.setUrl(QUrl(authUrl));
     QNetworkReply *reply = m_nam->put(req, json);
     connect(reply, &QNetworkReply::finished,
@@ -122,6 +125,10 @@ void WebSocketManager::retrieveAuthTokenFinished()
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     if (reply->error() != QNetworkReply::NoError)
     {
+        qDebug("NetworkReply error - func: %s, error: %d, request: %s",
+               Q_FUNC_INFO,
+               reply->error(),
+               reply->request().url().toString().toLatin1().data());
         reply->deleteLater();
         return;
     }
@@ -151,6 +158,7 @@ void WebSocketManager::retrieveAuthTokenFinished()
     QString crossbarUrl(m_settings->value("crossbar_url", kCrossbarUrl).toString());
     crossbarUrl.append(QString(kCrossbarPath).arg(m_accountId, ownerId));
     crossbarReq.setUrl(QUrl(crossbarUrl));
+    qDebug("Crossbar url: %s", crossbarUrl.toLatin1().data());
     QNetworkReply *crossbarReply = m_nam->get(crossbarReq);
     connect(crossbarReply, &QNetworkReply::finished,
             this, &WebSocketManager::retrieveDevicesFinished);
@@ -163,6 +171,10 @@ void WebSocketManager::retrieveDevicesFinished()
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     if (reply->error() != QNetworkReply::NoError)
     {
+        qDebug("NetworkReply error - func: %s, error: %d, request: %s",
+               Q_FUNC_INFO,
+               reply->error(),
+               reply->request().url().toString().toLatin1().data());
         reply->deleteLater();
         return;
     }
@@ -190,6 +202,7 @@ void WebSocketManager::retrieveDevicesFinished()
     QString url(m_settings->value("event_url", kEventUrl).toString());
     url.append(kRetrieveWsPath);
     req.setUrl(QUrl(url));
+    qDebug("event url: %s", url.toLatin1().data());
     QNetworkReply *newReply = m_nam->get(req);
     connect(newReply, &QNetworkReply::finished,
             this, &WebSocketManager::retrieveWsAddressFinished);
@@ -202,6 +215,10 @@ void WebSocketManager::retrieveWsAddressFinished()
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     if (reply->error() != QNetworkReply::NoError)
     {
+        qDebug("NetworkReply error - func: %s, error: %d, request: %s",
+               Q_FUNC_INFO,
+               reply->error(),
+               reply->request().url().toString().toLatin1().data());
         reply->deleteLater();
         return;
     }
@@ -216,6 +233,8 @@ void WebSocketManager::retrieveWsAddressFinished()
     QString path(kWsPath);
     path.append(webSocketPath);
     wsUrl.setPath(path);
+
+    qDebug("websocket url: %s", wsUrl.toString().toLatin1().data());
 
     m_webSocket = new QWebSocket();
     connect(m_webSocket, &QWebSocket::connected,
@@ -400,8 +419,11 @@ void WebSocketManager::processChannelDestroy(const QJsonObject &args)
 void WebSocketManager::handleConnectionError()
 {
     qWarning("WebSocket connection error");
-    qDebug("WebSocket error: %s",
-           m_webSocket->errorString().toLatin1().data());
+    if (m_webSocket != nullptr)
+    {
+        qDebug("WebSocket error: %s",
+               m_webSocket->errorString().toLatin1().data());
+    }
     stop();
     emit connectionError();
 }

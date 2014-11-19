@@ -3,11 +3,6 @@
 #include <QFile>
 #include <QDir>
 
-//#if !defined(Q_OS_WIN)
-//#include <sys/stat.h>
-//#include <sys/types.h>
-//#endif
-
 #include <QDebug>
 
 bool UpdateManager::makeBackup(const QString &sourceFolder,

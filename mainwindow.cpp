@@ -118,7 +118,10 @@ void MainWindow::onChannelCreated(const QString &callId, const Caller &caller)
     m_informerDialogsHash.insert(callId, informerDialog);
 
     if (ui->openUrlComboBox->currentIndex() == kOpenUrlCreateChannel)
+    {
+        qDebug("Info url: %s", caller.callerUrl().toLatin1().data());
         QDesktopServices::openUrl(QUrl(caller.callerUrl()));
+    }
 }
 
 void MainWindow::onChannelAnswered(const QString &callId)

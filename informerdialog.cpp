@@ -132,5 +132,6 @@ void InformerDialog::processAttach(bool checked)
 
 void InformerDialog::openCallerUrl()
 {
+    qDebug("Info url: %s", m_callerUrl.toLatin1().data());
     QDesktopServices::openUrl(QUrl(m_callerUrl));
 }

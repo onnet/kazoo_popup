@@ -151,11 +151,6 @@ bool ZipExtractor::extractArchive(const QString &archiveFilePath,
 
         file.close();
 
-#if !defined(Q_OS_WIN)
-        int permission = (info.externalAttr >> 16L);
-        chmod(name.toStdString().c_str(), mode_t(permission));
-#endif
-
         if (file.getZipError() != UNZ_OK)
         {
             qWarning("Cannot close zip file, error: %d", file.getZipError());
