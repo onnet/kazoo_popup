@@ -1,2 +1,0 @@
-add into *.pro file 
-INCLUDEPATH += $$[QT_INSTALL_PREFIX]/../Src/qtbase/src/3rdparty/zlib
