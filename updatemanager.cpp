@@ -9,9 +9,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
-#include <QMessageBox>
-#include <QIcon>
-
 #ifdef Q_OS_WIN
 #   include <windows.h>
 #   include <shellapi.h>
@@ -19,7 +16,8 @@
 
 UpdateManager *UpdateManager::m_instance = nullptr;
 
-static int kUpdateTimerInterval = 3600; // timer interval in seconds
+static int kUpdateMinInterval = 1; // 1 hour min interval
+static int kUpdateMaxInterval = 5; // 5 hours max interval
 static const char * const kCheckUpdateUrl = "http://localhost/checkupdate.php";
 
 #ifdef Q_OS_WIN
@@ -34,18 +32,18 @@ UpdateManager::UpdateManager(QObject *parent) :
     QObject(parent)
 {
     m_timer = new QTimer();
-    m_timer->setInterval(kUpdateTimerInterval * 1000);
+    qsrand(QDateTime::currentMSecsSinceEpoch());
     connect(m_timer, &QTimer::timeout,
-            this, &UpdateManager::checkUpdate);
+            this, &UpdateManager::processTimeout);
 }
 
 UpdateManager *UpdateManager::instance()
 {
-    if (!m_instance)
+    if (m_instance == nullptr)
     {
         static QMutex mutex;
         mutex.lock();
-        if (!m_instance)
+        if (m_instance == nullptr)
             m_instance = new UpdateManager;
         mutex.unlock();
     }
@@ -54,11 +52,23 @@ UpdateManager *UpdateManager::instance()
 
 void UpdateManager::start()
 {
-    checkUpdate();
-    m_timer->start();
+    processTimeout();
 }
 
-void UpdateManager::checkUpdate()
+void UpdateManager::stop()
+{
+    m_timer->stop();
+}
+
+void UpdateManager::processTimeout()
+{
+    checkUpdate();
+
+    int randValue = (qrand() % (kUpdateMaxInterval - kUpdateMinInterval + 1)) + kUpdateMinInterval;
+    m_timer->start(randValue * 60 * 60 * 1000);
+}
+
+void UpdateManager::checkUpdate(bool quiet)
 {
     QNetworkAccessManager *nam = new QNetworkAccessManager(this);
 
@@ -69,45 +79,44 @@ void UpdateManager::checkUpdate()
     QString query("app=kazoo&platform=%1&ver=%2");
     url.setQuery(query.arg(detectPlatform()).arg(APP_VERSION));
 
-    nam->get(QNetworkRequest(url));
+    QNetworkReply *reply = nam->get(QNetworkRequest(url));
+    reply->setProperty("quiet", quiet);
 }
 
 void UpdateManager::onReplyFinished(QNetworkReply *reply)
 {
     QString data = reply->readAll();
-    if (data.isEmpty() || !data.startsWith("http"))
+    bool quiet = reply->property("quiet").toBool();
+    if (!data.isEmpty() && data.startsWith("http"))
     {
-        reply->manager()->deleteLater();
-        reply->deleteLater();
-        return;
+        qDebug("New version is available");
+        m_updateUrl = data;
+        stop();
+
+        if (quiet)
+            doUpdate();
+        else
+            emit updateAvailable();
+    }
+    else
+    {
+        if (quiet)
+            emit noUpdate();
     }
 
-    QMessageBox msgBox;
-    msgBox.setWindowTitle(qApp->applicationName());
-    msgBox.setText(tr("New version is available. "
-                      "Would you like to update?"));
-    msgBox.setWindowIcon(QIcon(":/res/kazoo_32.png"));
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    reply->manager()->deleteLater();
+    reply->deleteLater();
+}
 
-    int answer = msgBox.exec();
-    if (answer != QMessageBox::Yes)
-    {
-        reply->manager()->deleteLater();
-        reply->deleteLater();
-        return;
-    }
-
+bool UpdateManager::doUpdate() const
+{
     QString updaterPath("%1/%2");
     updaterPath = updaterPath.arg(qApp->applicationDirPath(), kUpdaterFileName);
-    QStringList arguments("update");
-    arguments.append(data);
 
     bool ok;
 #ifdef Q_OS_WIN
-    QString parameters("\"update\" \"");
-    parameters.append(data);
-    parameters.append("\"");
+    QString parameters("\"update\" \"%1\"");
+    parameters = parameters.arg(m_updateUrl);
     int result = (int)ShellExecute(0,
                                    L"open",
                                    (const WCHAR*)updaterPath.utf16(),
@@ -126,6 +135,8 @@ void UpdateManager::onReplyFinished(QNetworkReply *reply)
     }
     ok = (result > kSuccessShellExecute);
 #elif defined Q_OS_MAC
+    QStringList arguments("update");
+    arguments.append(m_updateUrl);
     ok = QProcess::startDetached(updaterPath, arguments);
 #endif
     if (!ok)
@@ -133,7 +144,14 @@ void UpdateManager::onReplyFinished(QNetworkReply *reply)
     else
         QTimer::singleShot(0, qApp, SLOT(quit()));
 
-    reply->manager()->deleteLater();
-    reply->deleteLater();
+    return ok;
+}
+
+void UpdateManager::quietUpdate()
+{
+    if (m_updateUrl.isEmpty())
+        checkUpdate(true);
+    else
+        doUpdate();
 }
 

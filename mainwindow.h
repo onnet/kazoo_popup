@@ -53,6 +53,10 @@ private slots:
     void processDialogFinished();
     void processDialogAttached(bool attached);
 
+    void processUpdateAvailable();
+    void processNoUpdate();
+
+    void updateApp();
     void showDebugDialog();
     void closeAllPopups();
     void quit();

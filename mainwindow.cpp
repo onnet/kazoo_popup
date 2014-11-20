@@ -7,6 +7,7 @@
 #include "informerdialog.h"
 #include "websocketmanager.h"
 #include "debugdialog.h"
+#include "updatemanager.h"
 
 #include <QSystemTrayIcon>
 #include <QMenu>
@@ -63,6 +64,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_wsMan->start();
 
+    UpdateManager *updateManager = UpdateManager::instance();
+    connect(updateManager, &UpdateManager::updateAvailable,
+            this, &MainWindow::processUpdateAvailable);
+    connect(updateManager, &UpdateManager::noUpdate,
+            this, &MainWindow::processNoUpdate);
+    updateManager->start();
+
     qDebug("app version: %s", APP_VERSION);
 }
 
@@ -80,6 +88,7 @@ void MainWindow::createTrayIcon()
     QAction *stateAction = menu->addAction(tr("Connecting"));
     stateAction->setDisabled(true);
     menu->addSeparator();
+    menu->addAction(tr("Update"), this, SLOT(updateApp()));
     menu->addAction(tr("Settings"), this, SLOT(show()));
     menu->addAction(tr("Debug logs"), this, SLOT(showDebugDialog()));
     menu->addAction(tr("Close all popups"), this, SLOT(closeAllPopups()));
@@ -88,6 +97,34 @@ void MainWindow::createTrayIcon()
     m_trayIcon->setContextMenu(menu);
 
     m_trayIcon->show();
+}
+
+void MainWindow::processUpdateAvailable()
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(qApp->applicationName());
+    msgBox.setText(tr("New version is available. "
+                      "Would you like to update?"));
+    msgBox.setWindowIcon(QIcon(":/res/kazoo_32.png"));
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    int answer = msgBox.exec();
+
+    if (answer != QMessageBox::Yes)
+    {
+        qDebug("User declined update");
+        return;
+    }
+
+    UpdateManager::instance()->doUpdate();
+}
+
+void MainWindow::processNoUpdate()
+{
+    qDebug("User have the latest version");
+    QMessageBox::information(this,
+                             qApp->applicationName(),
+                             tr("You have the latest Kazoo Popup version"));
 }
 
 void MainWindow::onChannelCreated(const QString &callId, const Caller &caller)
@@ -374,6 +411,12 @@ void MainWindow::processDialogAttached(bool attached)
         m_attachedDialogsHash.remove(callId);
         m_informerDialogsHash.insert(callId, informerDialog);
     }
+}
+
+void MainWindow::updateApp()
+{
+    qDebug("User has requested to update");
+    UpdateManager::instance()->quietUpdate();
 }
 
 void MainWindow::showDebugDialog()

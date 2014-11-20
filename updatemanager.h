@@ -15,15 +15,25 @@ public:
     static UpdateManager *instance();
 
     void start();
+    bool doUpdate() const;
+    void quietUpdate();
+
+signals:
+    void updateAvailable();
+    void noUpdate();
 
 private:
     explicit UpdateManager(QObject *parent = 0);
 
+    void checkUpdate(bool quiet = false);
+    void stop();
+
     static UpdateManager *m_instance;
     QTimer *m_timer;
+    QString m_updateUrl;
 
 private slots:
-    void checkUpdate();
+    void processTimeout();
 
     void onReplyFinished(QNetworkReply *reply);
 
