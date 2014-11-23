@@ -12,6 +12,9 @@
 #ifdef Q_OS_WIN
 #   include <windows.h>
 #   include <shellapi.h>
+#elif defined Q_OS_MAC
+#   include <QProcess>
+#   include <QDir>
 #endif
 
 UpdateManager *UpdateManager::m_instance = nullptr;

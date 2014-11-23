@@ -2,8 +2,6 @@ TEMPLATE = lib
 CONFIG += qt warn_on
 QT -= gui
 
-INCLUDEPATH += $$[QT_INSTALL_PREFIX]/../Src/qtbase/src/3rdparty/zlib
-
 # The ABI version.
 
 !win32:VERSION = 1.0.0
@@ -41,9 +39,10 @@ unix:!symbian {
     target.path=$$PREFIX/lib/$${LIB_ARCH}
     INSTALLS += headers target
 
-	OBJECTS_DIR=.obj
-	MOC_DIR=.moc
+    OBJECTS_DIR=.obj
+    MOC_DIR=.moc
 	
+    LIBS += -L/usr/lib -lz
 }
 
 win32 {
@@ -53,6 +52,7 @@ win32 {
     INSTALLS += headers target
     # workaround for qdatetime.h macro bug
     DEFINES += NOMINMAX
+    INCLUDEPATH += $$[QT_INSTALL_PREFIX]/../Src/qtbase/src/3rdparty/zlib
 }
 
 

@@ -97,11 +97,11 @@ void AutoUpdater::installNewVersion()
 
     if (UpdateManager::makeBackup(mainAppDirPath, kBackupDirName, ignoreFiles))
     {
-        runPreUpdateScript(updatesDirPath);
+        runUpdateScript(updatesDirPath, kPreUpdateFileName);
 
         if (UpdateManager::installUpdates(updatesDirPath, mainAppDirPath, ignoreFiles))
         {
-            runPostUpdateScript(updatesDirPath);
+            runUpdateScript(updatesDirPath, kPostUpdateFileName);
 
             runUpdateAction("clean", mainAppDirPath, true);
         }
@@ -142,32 +142,18 @@ void AutoUpdater::installNewVersion()
     exit(0);
 }
 
-void AutoUpdater::runPreUpdateScript(const QString &updatesDirPath)
+void AutoUpdater::runUpdateScript(const QString &updatesDirPath, const QString &scriptName)
 {
     QDir updatesDir(updatesDirPath);
-    if (!updatesDir.exists(kPreUpdateFileName))
+    if (!updatesDir.exists(scriptName))
         return;
 
-//    QProcess::execute(updatesDir.absoluteFilePath(kPreUpdateFileName));
     QProcess p;
-    QString path(updatesDir.absoluteFilePath(kPreUpdateFileName));
+    QString path(updatesDir.absoluteFilePath(scriptName));
 #ifdef Q_OS_WIN
     p.start("cmd.exe", QStringList() << "/c" << QDir::toNativeSeparators(path));
-#endif
-    p.waitForFinished();
-}
-
-void AutoUpdater::runPostUpdateScript(const QString &updatesDirPath)
-{
-    QDir updatesDir(updatesDirPath);
-    if (!updatesDir.exists(kPostUpdateFileName))
-        return;
-
-//    QProcess::execute(updatesDir.absoluteFilePath(kPostUpdateFileName));
-    QProcess p;
-    QString path(updatesDir.absoluteFilePath(kPostUpdateFileName));
-#ifdef Q_OS_WIN
-    p.start("cmd.exe", QStringList() << "/c" << QDir::toNativeSeparators(path));
+#elif defined Q_OS_MAC
+    p.start("sh", QStringList() << path);
 #endif
     p.waitForFinished();
 }
