@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "KazooPopup"
-!define PRODUCT_VERSION "0.1.0"
+!define PRODUCT_VERSION "0.9.0"
 !define PRODUCT_WEB_SITE "http://2600hz.org/"
 !define PRODUCT_PUBLISHER "2600hz"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -51,6 +51,7 @@ Section Install
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "${PRODUCT_NAME}.exe"
+  File "autoupdater.exe"
   File "Qt5Core.dll"
   File "Qt5Gui.dll"
   File "Qt5Network.dll"
@@ -64,6 +65,7 @@ Section Install
   File "icudt52.dll"
   File "icuin52.dll"
   File "icuuc52.dll"
+  File "quazip.dll"
   File "readme.txt"
   File /oname=$LOCALAPPDATA\${PRODUCT_NAME}\settings.ini "settings.ini"
   
@@ -109,6 +111,7 @@ Section Uninstall
   SetShellVarContext all
   Delete "$INSTDIR\uninstall.exe"
   Delete "$INSTDIR\${PRODUCT_NAME}.exe"
+  Delete "$INSTDIR\autoupdater.exe"
   Delete "$INSTDIR\Qt5Core.dll"
   Delete "$INSTDIR\Qt5Gui.dll"
   Delete "$INSTDIR\Qt5Network.dll"
@@ -122,6 +125,7 @@ Section Uninstall
   Delete "$INSTDIR\icudt52.dll"
   Delete "$INSTDIR\icuin52.dll"
   Delete "$INSTDIR\icuuc52.dll"
+  Delete "$INSTDIR\quazip.dll"
   Delete "$INSTDIR\readme.txt"
   Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$LOCALAPPDATA\${PRODUCT_NAME}\settings.ini"

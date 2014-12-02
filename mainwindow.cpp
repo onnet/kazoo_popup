@@ -102,6 +102,7 @@ void MainWindow::createTrayIcon()
 void MainWindow::processUpdateAvailable()
 {
     QMessageBox msgBox;
+    msgBox.setWindowFlags(msgBox.windowFlags() | Qt::WindowStaysOnTopHint);
     msgBox.setWindowTitle(qApp->applicationName());
     msgBox.setText(tr("New version is available. "
                       "Would you like to update?"));

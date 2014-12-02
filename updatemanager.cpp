@@ -21,7 +21,7 @@ UpdateManager *UpdateManager::m_instance = nullptr;
 
 static int kUpdateMinInterval = 1; // 1 hour min interval
 static int kUpdateMaxInterval = 5; // 5 hours max interval
-static const char * const kCheckUpdateUrl = "http://localhost/checkupdate.php";
+static const char * const kCheckUpdateUrl = "http://updates.2600hz.com/checkupdate.php";
 
 #ifdef Q_OS_WIN
 static QString kUpdaterFileName = "autoupdater.exe";

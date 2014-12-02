@@ -243,9 +243,13 @@ void AutoUpdater::runUpdateAction(const QString &updateAction, const QString &up
 {
     if (ok)
     {
-        QMessageBox::information(0,
-                                 qApp->applicationName(),
-                                 tr("Kazoo Popup application is successfully updated"));
+        QMessageBox msgBox;
+        msgBox.setWindowFlags(msgBox.windowFlags() | Qt::WindowStaysOnTopHint);
+        msgBox.setWindowIcon(QIcon(":/res/kazoo_32.png"));
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setWindowTitle(qApp->applicationName());
+        msgBox.setText(tr("Kazoo Popup application is successfully updated"));
+        msgBox.exec();
     }
     QStringList arguments(updateAction);
     runApp(updaterDirPath + "/" + kAutoUpdaterFileName, arguments);
