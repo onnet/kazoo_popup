@@ -20,9 +20,20 @@
 static int kProgressDialogWidth = 280;
 static int kProgressDialogHeight = 100;
 #elif defined Q_OS_MAC
+#   include <QStandardPaths>
+
 static int kProgressDialogWidth = 400;
 static int kProgressDialogHeight = 100;
 #endif
+
+QString updatesDirPath()
+{
+#ifdef Q_OS_WIN
+    return qApp->applicationDirPath();
+#elif defined Q_OS_MAC
+    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + qApp->applicationName();
+#endif
+}
 
 AutoUpdater::AutoUpdater(QObject *parent) :
     QObject(parent)
@@ -40,7 +51,7 @@ void AutoUpdater::downloadUpdates(const QString &url)
     m_url = url;
     qDebug() << "Download updates url: " << url;
     DownloadManager *downloadManager = new DownloadManager(this);
-    downloadManager->setTargetDirPath(qApp->applicationDirPath());
+    downloadManager->setTargetDirPath(updatesDirPath());
 
     if (m_progressDialog == nullptr)
         createProgressDialog();
@@ -60,8 +71,8 @@ void AutoUpdater::installNewVersion()
 {
     qDebug() << "Install new version";
 
-    QString updatesDirPath(qApp->applicationDirPath());
-    QDir appDir(updatesDirPath);
+    QString updatesDirPathStr(updatesDirPath());
+    QDir appDir(updatesDirPathStr);
     appDir.cdUp();
     QString mainAppDirPath(appDir.absolutePath());
 
@@ -86,7 +97,7 @@ void AutoUpdater::installNewVersion()
     ignoreFiles.append(kBackupDirName);
     ignoreFiles.append(kIgnoreListFileName);
 
-    QString ignoreListPath = updatesDirPath + "/" + kIgnoreListFileName;
+    QString ignoreListPath = updatesDirPathStr + "/" + kIgnoreListFileName;
     QFile ignoreList(ignoreListPath);
     if (ignoreList.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -97,11 +108,11 @@ void AutoUpdater::installNewVersion()
 
     if (UpdateManager::makeBackup(mainAppDirPath, kBackupDirName, ignoreFiles))
     {
-        runUpdateScript(updatesDirPath, kPreUpdateFileName);
+        runUpdateScript(updatesDirPathStr, kPreUpdateFileName);
 
-        if (UpdateManager::installUpdates(updatesDirPath, mainAppDirPath, ignoreFiles))
+        if (UpdateManager::installUpdates(updatesDirPathStr, mainAppDirPath, ignoreFiles))
         {
-            runUpdateScript(updatesDirPath, kPostUpdateFileName);
+            runUpdateScript(updatesDirPathStr, kPostUpdateFileName);
 
             runUpdateAction("clean", mainAppDirPath, true);
         }
@@ -160,7 +171,7 @@ void AutoUpdater::runUpdateScript(const QString &updatesDirPath, const QString &
 
 void AutoUpdater::clean()
 {
-    QDir appDir(qApp->applicationDirPath());
+    QDir appDir(updatesDirPath());
 
     if (appDir.cd(kUpdatesDirName))
     {
@@ -292,12 +303,27 @@ void AutoUpdater::processExtractFinished()
 
     if (zipExtractor != nullptr && zipExtractor->error().isEmpty())
     {
+#ifdef Q_OS_WIN
         QStringList arguments("install");
         QFileInfo fileInfo(zipExtractor->archiveFilePath());
         QDir archiveDir(fileInfo.absoluteDir());
         archiveDir.cd(kUpdatesDirName);
-        QString path = archiveDir.absoluteFilePath(kAutoUpdaterFileName);
+        QString path = archiveDir.absolutePath() + "/" + kAutoUpdaterFileName;
         runApp(path, arguments);
+#elif defined Q_OS_MAC
+        QFileInfo fileInfo(zipExtractor->archiveFilePath());
+        fileInfo.baseName();
+        QDir archiveDir(fileInfo.absoluteDir());
+        archiveDir.cd(kUpdatesDirName);
+        QString path = archiveDir.absolutePath() + "/" + fileInfo.completeBaseName() + ".dmg";
+        QProcess::startDetached("sh",
+                                QStringList()
+                                << "-c"
+                                << QString("hdiutil attach '%1' -autoopen; rm -rf '%2';")
+                                .arg(QDir::toNativeSeparators(path))
+                                .arg(QDir::toNativeSeparators(archiveDir.absolutePath()))
+                                );
+#endif
     }
     else
     {

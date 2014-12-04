@@ -27,7 +27,7 @@ static const char * const kCheckUpdateUrl = "http://updates.2600hz.com/checkupda
 static QString kUpdaterFileName = "autoupdater.exe";
 static int kSuccessShellExecute = 32; // http://msdn.microsoft.com/en-us/library/windows/desktop/bb762153(v=vs.85).aspx
 #elif defined Q_OS_MAC
-static QString kUpdaterFileName = "autoupdater.app";
+static QString kUpdaterFileName = "autoupdater";
 #endif
 
 

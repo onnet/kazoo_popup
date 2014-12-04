@@ -5,11 +5,14 @@
 #include <QApplication>
 #include <QDir>
 
+#ifdef Q_OS_MAC
+#   include <QProcess>
+#endif
+
 static const char * const kLogsDirName = "logs";
 
 QString dataDirPath()
 {
-#ifdef Q_OS_WIN
     QString appDirPath("%1/%2");
     appDirPath = appDirPath.arg(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation),
                                 qApp->applicationName());
@@ -17,10 +20,12 @@ QString dataDirPath()
     if (!appDir.exists())
         appDir.mkpath(appDirPath);
 
-    return appDirPath;
-#elif defined Q_OS_MAC
-    return qApp->applicationDirPath();
+#ifdef Q_OS_MAC
+    if (!appDir.exists("settings.ini"))
+        QProcess::startDetached("sh", QStringList() << "-c" << "cp '" + qApp->applicationDirPath() + "/settings.ini' '" + appDirPath + "/settings.ini'");
 #endif
+
+    return appDirPath;
 }
 
 QString logsDirPath()

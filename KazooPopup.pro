@@ -77,7 +77,7 @@ macx {
     #product.depends += all
     #product.commands += pkgbuild --identifier 2600hz --version 1.0 --root KazooPopup.app --install-location ~/Applications/KazooPopup.app KazooPopup.pkg;
 
-    deploy.commands += sh $${PWD}/res/mac/make_dmg.sh -V -i $${PWD}/$${ICON} -s "400:300" -c "300:50:100:50" "$${TARGET}.app";
+    makedmg.commands += sh $${PWD}/res/mac/make_dmg.sh -V -i $${PWD}/$${ICON} -s "400:300" -c "300:50:100:50" "$${TARGET}.app";
 
-    QMAKE_EXTRA_TARGETS += deploy
+    QMAKE_EXTRA_TARGETS += deploy makedmg
 }

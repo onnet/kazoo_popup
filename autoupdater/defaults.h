@@ -15,7 +15,7 @@ static const char * const kPostUpdateFileName = "post-update.bat";
 #endif
 
 #ifdef Q_OS_MAC
-static const char * const kAutoUpdaterFileName = "autoupdater.app";
+static const char * const kAutoUpdaterFileName = "Contents/MacOS/autoupdater";
 static const char * const kUpdatedAppFileName = "KazooPopup.app";
 static const char * const kPreUpdateFileName = "pre-update.sh";
 static const char * const kPostUpdateFileName = "post-update.sh";
