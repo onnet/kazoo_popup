@@ -7,7 +7,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleGetInfoString</key>
-        <string>@EXECUTABLE@ 0.1.0</string>
+        <string>@EXECUTABLE@ 1.0.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
@@ -15,9 +15,9 @@
 	<key>CFBundleIdentifier</key>
         <string>com.2600hz.kazoopopup</string>
 	<key>CFBundleVersion</key>
-        <string>0.1.0</string>
+        <string>1.0.0</string>
 	<key>CFBundleShortVersionString</key>
-        <string>0.1.0</string>
+        <string>1.0.0</string>
 	<key>LSApplicationCategoryType</key>
         <string>public.app-category.productivity</string>
 	<key>NOTE</key>

@@ -5,7 +5,7 @@ static const char * const kUpdatesDirName = "updates";
 static const char * const kBackupDirName = "backup";
 static const char * const kIgnoreListFileName = "ignore-list";
 static const char * const kContactEmail = "example@example.com";
-static const char * const kUpdatedAppName = "Kazoo Popup";
+static const char * const kUpdatedAppName = "KazooPopup";
 
 #ifdef Q_OS_WIN
 static const char * const kAutoUpdaterFileName = "autoupdater.exe";

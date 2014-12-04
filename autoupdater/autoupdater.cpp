@@ -31,7 +31,7 @@ QString updatesDirPath()
 #ifdef Q_OS_WIN
     return qApp->applicationDirPath();
 #elif defined Q_OS_MAC
-    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + qApp->applicationName();
+    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + kUpdatedAppName;
 #endif
 }
 
