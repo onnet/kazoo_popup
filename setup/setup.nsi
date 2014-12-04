@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "KazooPopup"
-!define PRODUCT_VERSION "0.9.0"
+!define PRODUCT_VERSION "1.0.0"
 !define PRODUCT_WEB_SITE "http://2600hz.org/"
 !define PRODUCT_PUBLISHER "2600hz"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
