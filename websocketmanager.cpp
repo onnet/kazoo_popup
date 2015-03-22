@@ -21,7 +21,7 @@ static const char * const kRetrieveWsPath = "/socket.io/1/";
 static const char * const kWsPath = "/socket.io/1/websocket/";
 static const char * const kAuthPath = "/v1/user_auth";
 static const char * const kCrossbarPath = "/v1/user_auth/accounts/%1/devices?filter_owner_id=%2";
-static const char * const kWsScheme = "ws";
+static const char * const kWsScheme = "wss";
 
 static const int kCheckPingTimeout = 30000;
 static const int kPermittedPingTimeout = 15000;
@@ -111,10 +111,18 @@ void WebSocketManager::retrieveAuthToken()
 
     QNetworkRequest req;
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    /* Setup SSL */
+    QSslConfiguration config = req.sslConfiguration();
+    config.setPeerVerifyMode(QSslSocket::VerifyNone);
+    config.setProtocol(QSsl::AnyProtocol);
+    req.setSslConfiguration(config);
+
     QString authUrl(m_settings->value("auth_url", kAuthUrl).toString());
     authUrl.append(kAuthPath);
     qDebug("Auth url: %s", authUrl.toLatin1().data());
     req.setUrl(QUrl(authUrl));
+
     QNetworkReply *reply = m_nam->put(req, json);
     connect(reply, &QNetworkReply::finished,
             this, &WebSocketManager::retrieveAuthTokenFinished);
@@ -200,17 +208,26 @@ void WebSocketManager::retrieveDevicesFinished()
         m_devices.append(devices.at(i).toObject().value("id").toString());
 
     QNetworkRequest req;
+
+    /* Setup SSL */
+    QSslConfiguration config = req.sslConfiguration();
+    config.setPeerVerifyMode(QSslSocket::VerifyNone);
+    config.setProtocol(QSsl::AnyProtocol);
+    req.setSslConfiguration(config);
+
     req.setRawHeader("X-Auth-Token", m_authToken.toLatin1());
     QString url(m_settings->value("event_url", kEventUrl).toString());
     url.append(kRetrieveWsPath);
     req.setUrl(QUrl(url));
     qDebug("event url: %s", url.toLatin1().data());
     QNetworkReply *newReply = m_nam->get(req);
+
     connect(newReply, &QNetworkReply::finished,
             this, &WebSocketManager::retrieveWsAddressFinished);
     connect(newReply, SIGNAL(error(QNetworkReply::NetworkError)),
             this, SLOT(handleConnectionError()));
 }
+
 
 void WebSocketManager::retrieveWsAddressFinished()
 {
@@ -239,6 +256,13 @@ void WebSocketManager::retrieveWsAddressFinished()
     qDebug("websocket url: %s", wsUrl.toString().toLatin1().data());
 
     m_webSocket = new QWebSocket();
+
+    /* Setup SSL */
+    QSslConfiguration config = m_webSocket->sslConfiguration();
+    config.setPeerVerifyMode(QSslSocket::VerifyNone);
+    config.setProtocol(QSsl::AnyProtocol);
+    m_webSocket->setSslConfiguration(config);
+
     connect(m_webSocket, &QWebSocket::connected,
             this, &WebSocketManager::webSocketConnected);
     connect(m_webSocket, &QWebSocket::disconnected,
