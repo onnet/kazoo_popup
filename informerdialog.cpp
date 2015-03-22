@@ -19,7 +19,16 @@ InformerDialog::InformerDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowFlags(Qt::SplashScreen | Qt::WindowStaysOnTopHint);
+    setWindowFlags(
+        #ifdef Q_OS_MAC
+            Qt::SubWindow | // This type flag is the second point
+        #else
+            Qt::Tool |
+        #endif
+            Qt::FramelessWindowHint |
+            Qt::WindowSystemMenuHint |
+            Qt::WindowStaysOnTopHint
+        );
 
     connect(ui->closeToolButton, &QToolButton::clicked,
             this, &InformerDialog::hide);
