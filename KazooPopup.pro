@@ -29,8 +29,7 @@ SOURCES += \
     caller.cpp \
     defaults.cpp \
     debugdialog.cpp \
-    logger.cpp \
-    updatemanager.cpp
+    logger.cpp
 
 HEADERS  += \
     mainwindow.h \
@@ -39,8 +38,12 @@ HEADERS  += \
     informerdialog.h \
     caller.h \
     debugdialog.h \
-    logger.h \
-    updatemanager.h
+    logger.h
+
+win32 | macx {
+    SOURCES += updatemanager.cpp
+    HEADERS += updatemanager.h
+}
 
 FORMS    += \
     mainwindow.ui \

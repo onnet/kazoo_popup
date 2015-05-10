@@ -43,5 +43,9 @@ QString detectPlatform()
     return "win";
 #elif defined Q_OS_MAC
     return "mac";
+#elif defined Q_OS_LINUX
+    return "linux";
+#else
+    return "unknown";
 #endif
 }

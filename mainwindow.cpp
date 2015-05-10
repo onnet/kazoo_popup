@@ -7,7 +7,10 @@
 #include "informerdialog.h"
 #include "websocketmanager.h"
 #include "debugdialog.h"
-#include "updatemanager.h"
+
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
+#   include "updatemanager.h"
+#endif
 
 #include <QSystemTrayIcon>
 #include <QMenu>
@@ -64,12 +67,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_wsMan->start();
 
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
     UpdateManager *updateManager = UpdateManager::instance();
     connect(updateManager, &UpdateManager::updateAvailable,
             this, &MainWindow::processUpdateAvailable);
     connect(updateManager, &UpdateManager::noUpdate,
             this, &MainWindow::processNoUpdate);
     updateManager->start();
+#endif
 
     qDebug("app version: %s", APP_VERSION);
 }
@@ -88,7 +93,9 @@ void MainWindow::createTrayIcon()
     QAction *stateAction = menu->addAction(tr("Connecting"));
     stateAction->setDisabled(true);
     menu->addSeparator();
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
     menu->addAction(tr("Update"), this, SLOT(updateApp()));
+#endif
     menu->addAction(tr("Settings"), this, SLOT(show()));
     menu->addAction(tr("Debug logs"), this, SLOT(showDebugDialog()));
     menu->addAction(tr("Close all popups"), this, SLOT(closeAllPopups()));
@@ -99,6 +106,7 @@ void MainWindow::createTrayIcon()
     m_trayIcon->show();
 }
 
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
 void MainWindow::processUpdateAvailable()
 {
     QMessageBox msgBox;
@@ -127,6 +135,7 @@ void MainWindow::processNoUpdate()
                              qApp->applicationName(),
                              tr("You have the latest Kazoo Popup version"));
 }
+#endif
 
 void MainWindow::onChannelCreated(const QString &callId, const Caller &caller)
 {
@@ -414,11 +423,13 @@ void MainWindow::processDialogAttached(bool attached)
     }
 }
 
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
 void MainWindow::updateApp()
 {
     qDebug("User has requested to update");
     UpdateManager::instance()->quietUpdate();
 }
+#endif
 
 void MainWindow::showDebugDialog()
 {

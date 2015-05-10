@@ -53,10 +53,12 @@ private slots:
     void processDialogFinished();
     void processDialogAttached(bool attached);
 
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
     void processUpdateAvailable();
     void processNoUpdate();
-
     void updateApp();
+#endif
+
     void showDebugDialog();
     void closeAllPopups();
     void quit();
