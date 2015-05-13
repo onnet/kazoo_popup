@@ -1,30 +1,3 @@
-/* --------------------------------------------------------------------------------------------------------------------------
- * ** 
- * ** Ordered by Kirill Sysoev kirill.sysoev@gmail.com
- * ** (OnNet communications Inc. http://onnet.su)
- * ** 
- * ** Developed by Alexey Lysenko lysenkoalexmail@gmail.com
- * ** 
- * ** Please report bugs and provide any possible patches directly to this repository: https://github.com/onnet/kazoo_popup.git
- * ** 
- * ** If you would like to order additional development, contact Alexey Lysenko over email lysenkoalexmail@gmail.com directly.
- * ** 
- * ** 
- * ** This application:
- * **  - connects to Kazoo whapp blackhole;
- * **  - listens for incoming calls;
- * **  - queries third party server whether it knows anything about caller's number;
- * **  - Pop's Up window with provided info.
- * ** 
- * ** It is:
- * **  - written in Qt which promises to be crossplatform application (hopefully);
- * **  - is NOT production ready, but intended to be a simple example of using blachole whapp
- * **    (please note, that blackhole whapp doesn't support secure connectoin over SSL yet; check KAZOO-2632).
- * ** 
- * ** Good luck!
- * ** 
- * ** -------------------------------------------------------------------------------------------------------------------------*/
-
 #ifndef WEBSOCKETMANAGER_H
 #define WEBSOCKETMANAGER_H
 
@@ -35,8 +8,9 @@
 class QNetworkAccessManager;
 class QWebSocket;
 class QSettings;
+class QTimer;
 
-class ContactInfo;
+class Caller;
 
 class WebSocketManager : public QObject
 {
@@ -45,38 +19,51 @@ public:
     explicit WebSocketManager(QObject *parent = 0);
     ~WebSocketManager();
 
+public slots:
     void start();
+    void stop();
 
 private:
     void retrieveAuthToken();
     void processWsData(const QString &data);
+    void processChannelCreate(const QJsonObject &args);
+    void processChannelAnswer(const QJsonObject &args);
+    void processChannelDestroy(const QJsonObject &args);
+
+    bool isSupportCallDirection(const QString &callDirection);
 
     QNetworkAccessManager *m_nam = nullptr;
     QWebSocket *m_webSocket = nullptr;
+    QTimer *m_timer = nullptr;
+    QSettings *m_settings = nullptr;
+    qint64 m_lastPing = 0;
 
     QString m_authToken;
     QString m_accountId;
+    QStringList m_devices;
 
-    QHash<QString, QString> m_createChannelHash;
-    QHash<QString, ContactInfo*> m_contactsHash;
-    QMultiHash<QString, QString> m_contactCallIdHash;
-
-    QSettings *m_settings;
+    QHash<QString, Caller> m_callersHash;
 
 signals:
-    void channelCreated(ContactInfo *contactInfo);
-    void channelAnswered(ContactInfo *contactInfo);
-    void channelDestroyed(ContactInfo *contactInfo);
+    void channelCreated(const QString &callId, const Caller &caller);
+    void channelAnswered(const QString &callId);
+    void channelAnsweredAnother(const QString &callId, const QString &calleeNumber, const QString &calleeName);
+    void channelDestroyed(const QString &callId);
+
+    void connectionError();
+    void connected();
 
 private slots:
     void retrieveAuthTokenFinished();
+    void retrieveDevicesFinished();
     void retrieveWsAddressFinished();
-    void retrieveCallerInfoFinished();
 
     void webSocketConnected();
     void webSocketDisconnected();
-    void webSocketTextMessageReceived(const QString &message);
+    void webSocketTextFrameReceived(const QString &frame);
 
+    void checkPingTimeout();
+    void handleConnectionError();
 };
 
 #endif // WEBSOCKETMANAGER_H
