@@ -289,6 +289,14 @@ bool MainWindow::isCorrectSettings() const
     if (!ok)
         return false;
 
+    ok &= !ui->crmUrlLineEdit->text().isEmpty();
+    if (!ok)
+        return false;
+
+    ok &= !ui->crmHashLineEdit->text().isEmpty();
+    if (!ok)
+        return false;
+
     return ok;
 }
 
@@ -359,6 +367,8 @@ void MainWindow::saveSettings()
     settings.setValue("call_direction", ui->callDirectionComboBox->currentIndex());
     settings.setValue("open_url", ui->openUrlComboBox->currentIndex());
     settings.setValue("run_at_startup", ui->runAtStartupCheckBox->isChecked());
+    settings.setValue("crm_url", ui->crmUrlLineEdit->text());
+    settings.setValue("crm_hash", ui->crmHashLineEdit->text());
 
     if (ui->runAtStartupCheckBox->isChecked())
         setRunAtStartup();
@@ -383,6 +393,8 @@ void MainWindow::loadSettings()
     ui->callDirectionComboBox->setCurrentIndex(settings.value("call_direction", kCallDirection).toInt());
     ui->openUrlComboBox->setCurrentIndex(settings.value("open_url", kOpenUrl).toInt());
     ui->runAtStartupCheckBox->setChecked(settings.value("run_at_startup", kRunAtStartup).toBool());
+    ui->crmUrlLineEdit->setText(settings.value("crm_url", kCrmUrl).toString());
+    ui->crmHashLineEdit->setText(settings.value("crm_hash", kCrmHash).toString());
 
     if (ui->runAtStartupCheckBox->isChecked())
         setRunAtStartup();

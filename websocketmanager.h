@@ -58,6 +58,8 @@ private slots:
     void retrieveDevicesFinished();
     void retrieveWsAddressFinished();
 
+    void retrieveCrmInfoFinished();
+
     void webSocketConnected();
     void webSocketDisconnected();
     void webSocketTextFrameReceived(const QString &frame);

@@ -27,11 +27,32 @@ public:
 
     QString callerInfo() const;
 
+    void setContactPerson(const QString &contactPerson);
+    QString contactPerson() const;
+
+    void setLogin(const QString &login);
+    QString login() const;
+
+    void setCallingNumber(const QString &callingNumber);
+    QString callingNumber() const;
+
+    void setCompanyName(const QString &companyName);
+    QString companyName() const;
+
+    void setBalance(double balance);
+    double balance() const;
+
 private:
     QString m_callerIdName;
     QString m_callerIdNumber;
     QString m_callerDialed;
     QString m_callerUrl;
+
+    QString m_contactPerson;
+    QString m_login;
+    QString m_callingNumber;
+    QString m_companyName;
+    double m_balance;
 };
 
 #endif // CALLER_H

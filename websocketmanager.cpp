@@ -393,11 +393,33 @@ void WebSocketManager::processChannelCreate(const QJsonObject &args)
         url.replace("{{" + key + "}}", value);
     }
 
+    QString crmUrl(m_settings->value("crm_url", kCrmUrl).toString());
+    if (regExp.indexIn(crmUrl) != -1)
+    {
+        QString key = regExp.cap(1);
+        QString value = args.value(key).toString();
+        crmUrl.replace("{{" + key + "}}", value);
+    }
+
+    QByteArray hashTemplate(callerIdNumber.toLatin1());
+    hashTemplate.append(":");
+    hashTemplate.append(m_settings->value("crm_hash", kCrmHash).toString());
+    QByteArray hash = QCryptographicHash::hash(hashTemplate, QCryptographicHash::Md5).toHex();
+
+    QNetworkRequest req;
+    crmUrl.append("&md5=").append(hash);
+    req.setUrl(QUrl(crmUrl));
+    QNetworkReply *reply = m_nam->get(req);
+    reply->setProperty("call_id", otherLegCallId);
+
+    connect(reply, &QNetworkReply::finished,
+            this, &WebSocketManager::retrieveCrmInfoFinished);
+
     Caller caller(callerIdName, callerIdNumber, callerDialed, url);
     m_callersHash.insert(otherLegCallId, caller);
 
     qDebug("Channel created");
-    emit channelCreated(otherLegCallId, caller);
+    //emit channelCreated(otherLegCallId, caller);
 }
 
 void WebSocketManager::processChannelAnswer(const QJsonObject &args)
@@ -459,6 +481,35 @@ void WebSocketManager::checkPingTimeout()
     qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
     if (currentTimestamp - m_lastPing > kPermittedPingTimeout)
         handleConnectionError();
+}
+
+void WebSocketManager::retrieveCrmInfoFinished()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    QByteArray data = reply->readAll();
+    QString callId = reply->property("call_id").toString();
+    reply->deleteLater();
+
+    QJsonParseError error;
+    QJsonDocument document = QJsonDocument::fromJson(data, &error);
+    if (error.error != QJsonParseError::NoError)
+        return;
+
+    QString contactPerson = document.object().value("contact_person").toString();
+    QString loginName = document.object().value("login_name").toString();
+    QString callingNumber = document.object().value("calling_number").toString();
+    QString companyName = document.object().value("company_name").toString();
+    double balance = document.object().value("cur_balance").toDouble();
+
+    Caller &caller = m_callersHash[callId];
+    caller.setContactPerson(contactPerson);
+    caller.setLogin(loginName);
+    caller.setCallingNumber(callingNumber);
+    caller.setCompanyName(companyName);
+    caller.setBalance(balance);
+
+    qDebug("Retrieve CRM info finished");
+    emit channelCreated(callId, caller);
 }
 
 QString socketErrorToString(QAbstractSocket::SocketError error)
