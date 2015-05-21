@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>283</width>
-    <height>146</height>
+    <width>320</width>
+    <height>160</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>320</width>
+    <height>160</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Informer Dialog</string>
@@ -39,7 +45,7 @@ background-color: #FFFFBF;
      <property name="font">
       <font>
        <family>Times New Roman</family>
-       <pointsize>24</pointsize>
+       <pointsize>14</pointsize>
       </font>
      </property>
      <property name="text">
@@ -70,6 +76,29 @@ background-color: #FFFFBF;
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QToolButton" name="openUrlToolButton">
+       <property name="toolTip">
+        <string>Open Url</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="app.qrc">
+         <normaloff>:/res/open_url.png</normaloff>:/res/open_url.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QToolButton" name="attachToolButton">
@@ -121,6 +150,22 @@ background-color: #FFFFBF;
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="stateLabel">
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="text">
+      <string>State: Ringing</string>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

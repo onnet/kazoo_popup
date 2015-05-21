@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
-    <height>284</height>
+    <width>641</width>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,91 +15,60 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="loginLineEdit">
-      <property name="text">
-       <string>admin</string>
+    <item row="6" column="0" colspan="3">
+     <widget class="Line" name="line_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="8" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Md5 secret</string>
-      </property>
+    <item row="25" column="2">
+     <widget class="QComboBox" name="openUrlComboBox">
+      <item>
+       <property name="text">
+        <string>No</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Yes, when Call is Ringing</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Yes, when Call is Answered</string>
+       </property>
+      </item>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Password</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="1">
-     <widget class="QLineEdit" name="infoUrlLineEdit">
-      <property name="text">
-       <string>https://onnet.su/api/onnet/cidinfo</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>Info url</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>Event url</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>Realm</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>Login</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>Auth url</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="realmLineEdit">
-      <property name="text">
-       <string>blackhole.sip3.onnet.su</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
+    <item row="8" column="2">
      <widget class="QLineEdit" name="authUrlLineEdit">
       <property name="text">
-       <string>https://kz527.onnet.su:8443/v1/user_auth</string>
+       <string>https://api.server.com:8443</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
+    <item row="28" column="0" colspan="3">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="10" column="2">
      <widget class="QLineEdit" name="eventUrlLineEdit">
       <property name="text">
-       <string>http://kz527.onnet.su:5555</string>
+       <string>https://api.server.com:9443</string>
       </property>
      </widget>
     </item>
-    <item row="11" column="0" colspan="2">
+    <item row="29" column="0" colspan="3">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <spacer name="horizontalSpacer">
@@ -130,45 +99,296 @@
       </item>
      </layout>
     </item>
-    <item row="8" column="1">
-     <widget class="QLineEdit" name="md5HashLineEdit">
+    <item row="27" column="0" colspan="3">
+     <widget class="QCheckBox" name="runAtStartupCheckBox">
       <property name="text">
-       <string>vhbxzj947yisfbl</string>
+       <string>Automatically run at system startup</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
+    <item row="9" column="2">
+     <widget class="QLineEdit" name="crossbarUrlLineEdit">
+      <property name="text">
+       <string>https://api.server.com:8443</string>
+      </property>
+     </widget>
+    </item>
+    <item row="20" column="0" colspan="3">
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="26" column="0" colspan="3">
+     <widget class="Line" name="line_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="23" column="2">
+     <widget class="QLineEdit" name="infoUrlLineEdit">
+      <property name="text">
+       <string>http://info.server.com/popup.php?caller_number={{Caller-ID-Number}}</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QLineEdit" name="realmLineEdit">
+      <property name="text">
+       <string>domain.name.com</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
      <widget class="QLineEdit" name="passwordLineEdit">
       <property name="text">
-       <string>Black7Hole$5</string>
+       <string>temp1phone!</string>
       </property>
       <property name="echoMode">
        <enum>QLineEdit::Password</enum>
       </property>
      </widget>
     </item>
-    <item row="10" column="0" colspan="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+    <item row="22" column="2">
+     <widget class="QSpinBox" name="popupTimeoutSpinBox">
+      <property name="minimum">
+       <number>5</number>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
+      <property name="value">
+       <number>10</number>
       </property>
-     </spacer>
+     </widget>
     </item>
-    <item row="9" column="0" colspan="2">
-     <widget class="QLabel" name="label_8">
+    <item row="3" column="2">
+     <widget class="QLineEdit" name="loginLineEdit">
+      <property name="text">
+       <string>user_login</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="3">
+     <widget class="Line" name="line_4">
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="lineWidth">
+       <number>2</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="0" colspan="3">
+     <widget class="QLabel" name="label_12">
       <property name="font">
        <font>
-        <italic>true</italic>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="text">
-       <string>New settings will be applied after restarting application</string>
+       <string>Server Connectivity Information</string>
+      </property>
+     </widget>
+    </item>
+    <item row="25" column="0" colspan="2">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>Automatically Open URL?</string>
+      </property>
+     </widget>
+    </item>
+    <item row="22" column="0" colspan="2">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Popup Timeout</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="0" colspan="2">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Event URL</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="3">
+     <widget class="QLabel" name="label_13">
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>User Credentials</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0" colspan="2">
+     <widget class="QLabel" name="label">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Portal Login</string>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="2">
+     <widget class="QComboBox" name="callDirectionComboBox">
+      <item>
+       <property name="text">
+        <string>Use inbound direction</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Use outbound direction</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Use both inbound and outbound directions</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="3">
+     <widget class="QLabel" name="label_11">
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Call Manager - Configuration</string>
+      </property>
+     </widget>
+    </item>
+    <item row="18" column="0" colspan="2">
+     <widget class="QLabel" name="label_16">
+      <property name="text">
+       <string>CRM URL</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="0" colspan="2">
+     <widget class="QLabel" name="label_10">
+      <property name="text">
+       <string>Crossbar URL</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0" colspan="2">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Auth URL</string>
+      </property>
+     </widget>
+    </item>
+    <item row="14" column="0" colspan="2">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>Call Direction </string>
+      </property>
+     </widget>
+    </item>
+    <item row="23" column="0" colspan="2">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Screen-Pop URL</string>
+      </property>
+     </widget>
+    </item>
+    <item row="21" column="0" colspan="3">
+     <widget class="QLabel" name="label_14">
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Popup Behavior</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="2">
+     <widget class="QLabel" name="label_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Portal Password</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0" colspan="2">
+     <widget class="QLabel" name="label_3">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Account Realm</string>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="0" colspan="3">
+     <widget class="Line" name="line_5">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="17" column="0" colspan="3">
+     <widget class="QLabel" name="label_15">
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>CRM Information</string>
+      </property>
+     </widget>
+    </item>
+    <item row="18" column="2">
+     <widget class="QLineEdit" name="crmUrlLineEdit">
+      <property name="text">
+       <string>https://onnet.su:8443/ru/zonnet/login?login_name={{Caller-ID-Number}}</string>
+      </property>
+     </widget>
+    </item>
+    <item row="19" column="2">
+     <widget class="QLineEdit" name="crmHashLineEdit">
+      <property name="text">
+       <string>vhbxzj947yisfbl</string>
+      </property>
+     </widget>
+    </item>
+    <item row="19" column="0" colspan="2">
+     <widget class="QLabel" name="label_17">
+      <property name="text">
+       <string>CRM Hash</string>
       </property>
      </widget>
     </item>
@@ -176,6 +396,21 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>loginLineEdit</tabstop>
+  <tabstop>passwordLineEdit</tabstop>
+  <tabstop>realmLineEdit</tabstop>
+  <tabstop>authUrlLineEdit</tabstop>
+  <tabstop>crossbarUrlLineEdit</tabstop>
+  <tabstop>eventUrlLineEdit</tabstop>
+  <tabstop>callDirectionComboBox</tabstop>
+  <tabstop>popupTimeoutSpinBox</tabstop>
+  <tabstop>infoUrlLineEdit</tabstop>
+  <tabstop>openUrlComboBox</tabstop>
+  <tabstop>runAtStartupCheckBox</tabstop>
+  <tabstop>okPushButton</tabstop>
+  <tabstop>cancelPushButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
