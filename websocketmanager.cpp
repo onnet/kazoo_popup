@@ -500,6 +500,7 @@ void WebSocketManager::retrieveCrmInfoFinished()
     QString callingNumber = document.object().value("calling_number").toString();
     QString companyName = document.object().value("company_name").toString();
     double balance = document.object().value("cur_balance").toDouble();
+    QString email = document.object().value("email").toString();
 
     Caller &caller = m_callersHash[callId];
     caller.setContactPerson(contactPerson);
@@ -507,6 +508,7 @@ void WebSocketManager::retrieveCrmInfoFinished()
     caller.setCallingNumber(callingNumber);
     caller.setCompanyName(companyName);
     caller.setBalance(balance);
+    caller.setEmail(email);
 
     qDebug("Retrieve CRM info finished");
     emit channelCreated(callId, caller);

@@ -42,6 +42,9 @@ public:
     void setBalance(double balance);
     double balance() const;
 
+    void setEmail(const QString &email);
+    QString email() const;
+
 private:
     QString m_callerIdName;
     QString m_callerIdNumber;
@@ -53,6 +56,7 @@ private:
     QString m_callingNumber;
     QString m_companyName;
     double m_balance;
+    QString m_email;
 };
 
 #endif // CALLER_H

@@ -374,7 +374,7 @@
     <item row="18" column="2">
      <widget class="QLineEdit" name="crmUrlLineEdit">
       <property name="text">
-       <string>https://onnet.su:8443/ru/zonnet/login?login_name={{Caller-ID-Number}}</string>
+       <string>https://onnet.su/login?login_name={{Caller-ID-Number}}</string>
       </property>
      </widget>
     </item>

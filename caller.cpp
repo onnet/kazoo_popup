@@ -1,15 +1,15 @@
 #include "caller.h"
 
-static const char * const kCallerInfoTemplate = "<html><body>"
-                                                "Caller name: %1<br>"
-                                                "Caller number: %2<br>"
-                                                "Caller dialed: %3<br>"
-                                                "Contact person: %4<br>"
-                                                "Login name: <a href=\"https://onnet.su:8443/ru/zonnet/login?login_name=%5\">%5</a><br>"
-                                                "Calling number: %6<br>"
-                                                "Company name: %7<br>"
-                                                "Balance: %8"
-                                                "</body></html>";
+static const char * const kCallerInfoTemplate = "<html><body><table style='font-size: 2em; vertical-align: bottom;'><tbody>"
+                                                "<tr><td><font size=\"-1\">Caller name: </font></td><td><font size=\"+1\">%1</font></td></tr>"
+                                                "<tr><td><font size=\"-1\">Caller number: </font></td><td><font size=\"+1\">%2 (%6)</font></td></tr>"
+                                          //      "<tr><td><font size=\"-1\">Caller dialed: </font></td><td><font size=\"+1\">%3</font></td></tr>"
+                                                "<tr><td><font size=\"-1\">Contact person: </font></td><td><font size=\"+1\">%4</font></td></tr>"
+                                                "<tr><td><font size=\"-1\">Login name: </font></td><td><a href=\"https://onnet.su/login?login_name=%5\"><font size=\"+1\">%5</font></a></td></tr>"
+                                                "<tr><td><font size=\"-1\">Company: </font></td><td><font size=\"+1\">%7</font></td></tr>"
+                                                "<tr><td><font size=\"-1\">Balance: </font></td><td><font size=\"+1\">%8</font></td></tr>"
+                                                "<tr><td><font size=\"-1\">Email: </font></td><td><font size=\"+1\">%9</font></td></tr>"
+                                                "</tbody></table></body></html>";
 
 Caller::Caller()
 {
@@ -71,12 +71,13 @@ QString Caller::callerInfo() const
     QString info(kCallerInfoTemplate);
     return info.arg(m_callerIdName)
             .arg(m_callerIdNumber)
-            .arg(m_callerDialed)
+     //       .arg(m_callerDialed)
             .arg(m_contactPerson)
             .arg(m_login)
             .arg(m_callingNumber)
             .arg(m_companyName)
-            .arg(m_balance);
+            .arg(m_balance)
+            .arg(m_email);
 
 //    return "Caller name: " + m_callerIdName
 //            + "\nCaller number: " + m_callerIdNumber
@@ -131,4 +132,14 @@ void Caller::setBalance(double balance)
 double Caller::balance() const
 {
     return m_balance;
+}
+
+void Caller::setEmail(const QString &email)
+{
+    m_email = email;
+}
+
+QString Caller::email() const
+{
+    return m_email;
 }
