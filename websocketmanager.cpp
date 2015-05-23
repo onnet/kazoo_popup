@@ -500,7 +500,7 @@ void WebSocketManager::retrieveCrmInfoFinished()
     QString callingNumber = document.object().value("calling_number").toString();
     QString companyName = document.object().value("company_name").toString();
     double balance = document.object().value("cur_balance").toDouble();
-    QString email = document.object().value("email").toString();
+    QString email = document.object().value("email").toString().replace(",","<br>");
 
     Caller &caller = m_callersHash[callId];
     caller.setContactPerson(contactPerson);

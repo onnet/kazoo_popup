@@ -1,6 +1,6 @@
 #include "caller.h"
 
-static const char * const kCallerInfoTemplate = "<html><body><table style='font-size: 2em; vertical-align: bottom;'><tbody>"
+static const char * const kCallerInfoTemplate = "<html><body><table style='font-size: 2em; vertical-align: middle;'><tbody>"
                                                 "<tr><td><font size=\"-1\">Caller name: </font></td><td><font size=\"+1\">%1</font></td></tr>"
                                                 "<tr><td><font size=\"-1\">Caller number: </font></td><td><font size=\"+1\">%2 (%6)</font></td></tr>"
                                           //      "<tr><td><font size=\"-1\">Caller dialed: </font></td><td><font size=\"+1\">%3</font></td></tr>"
