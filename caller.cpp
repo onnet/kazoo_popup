@@ -6,7 +6,6 @@ static const char * const kCallerInfoTemplate = "<html><body><table style='font-
                                           //      "<tr><td><font size=\"-1\">Caller dialed: </font></td><td><font size=\"+1\">%3</font></td></tr>"
                                                 "<tr><td><font size=\"-1\">Contact person: </font></td><td><font size=\"+1\">%4</font></td></tr>"
                                                 "<tr><td><font size=\"-1\">Login name: </font></td><td><a href=\"%10=%5\"><font size=\"+1\">%5</font></a></td></tr>"
-                                          //      "<tr><td><font size=\"-1\">Login name: </font></td><td><a href=\"https://onnet.su/login?login_name=%5\"><font size=\"+1\">%5</font></a></td></tr>"
                                                 "<tr><td><font size=\"-1\">Company: </font></td><td><font size=\"+1\">%7</font></td></tr>"
                                                 "<tr><td><font size=\"-1\">Balance: </font></td><td><font size=\"+1\">%8</font></td></tr>"
                                                 "<tr><td><font size=\"-1\">Email: </font></td><td><font size=\"+1\">%9</font></td></tr>"
