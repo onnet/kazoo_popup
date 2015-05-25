@@ -5,12 +5,12 @@ class QString;
 
 static const char * const kLogin = "testuser1";
 static const char * const kPassword = "temp1phone!";
-static const char * const kRealm = "a1722b.sip.sandbox.2600hz.com";
-static const char * const kAuthUrl = "http://api.sandbox.2600hz.com:8000";
-static const char * const kCrossbarUrl = "http://api.sandbox.2600hz.com:8000";
-static const char * const kEventUrl = "http://api.sandbox.2600hz.com:5555";
-static const char * const kInfoUrl = "http://localhost/kazoo_popup.php?caller_number={{Caller-ID-Number}}";
-static const char * const kCrmUrl = "https://onnet.su/login?login_name={{Caller-ID-Number}}";
+static const char * const kRealm = "your_account_name.sip.onnet.su";
+static const char * const kAuthUrl = "https://sip.onnet.su:8443";
+static const char * const kCrossbarUrl = "https://sip.onnet.su:8443";
+static const char * const kEventUrl = "https://sip.onnet.su:7777";
+static const char * const kInfoUrl = "https://localhost/kazoo_popup.php?caller_number={{Caller-ID-Number}}";
+static const char * const kCrmUrl = "https://onnet.su/api/onnet/cidinfo?calling_number={{Caller-ID-Number}}";
 static const char * const kCrmHash = "vhbxzj947yisfbl";
 static const int kPopupTimeout = 30;
 static const int kCallDirection = 0;
